@@ -1,0 +1,31 @@
+{
+  "name": "frock",
+  "version": "0.0.0",
+  "description": "A configurable mock HTTP server",
+  "main": "lib/index.js",
+  "bin": {
+    "frock": "./bin/cli.js"
+  },
+  "scripts": {
+    "test": "npm run lint && npm run compile && babel test/index.js | tape",
+    "prepublish": "npm run compile",
+    "compile": "babel src --out-dir lib",
+    "lint": "standard src/**/*.js test/**/*.js"
+  },
+  "author": "Urban Airship",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "babel": "^5.6.14",
+    "eslint": "^1.1.0",
+    "eslint-config-standard": "^4.1.0",
+    "eslint-config-standard-react": "^1.0.4",
+    "eslint-plugin-react": "^3.2.2",
+    "eslint-plugin-standard": "^1.2.0",
+    "standard": "^5.1.0",
+    "tape": "^4.0.0"
+  },
+  "dependencies": {
+    "arrify": "^1.0.0",
+    "commuter": "^1.0.2"
+  }
+}
