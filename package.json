@@ -4,7 +4,7 @@
   "description": "A configurable mock HTTP server",
   "main": "lib/index.js",
   "bin": {
-    "frock": "./bin/cli.js"
+    "frock": "./bin/frock.js"
   },
   "scripts": {
     "test": "npm run lint && npm run compile && babel test/index.js | tape",
@@ -26,6 +26,8 @@
   },
   "dependencies": {
     "arrify": "^1.0.0",
-    "commuter": "^1.0.2"
+    "commuter": "^1.0.2",
+    "fs-find-root": "^1.0.2",
+    "minimist": "^1.1.3"
   }
 }

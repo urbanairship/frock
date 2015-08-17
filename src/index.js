@@ -5,6 +5,8 @@ import arrayify from 'arrify'
 
 export default createFrockInstance
 
+const log = logger.bind(null, 'frock')
+
 function createFrockInstance (config = {}) {
   const frock = {}
   const handlers = new Map()
@@ -20,28 +22,34 @@ function createFrockInstance (config = {}) {
   function run (ready = noop) {
     let count = 0
 
-    config.servers.forEach(s => {
-      const router = commuter(defaultRoute, s.baseUrl)
+    config.servers.forEach(serverConfig => {
+      const router = commuter(defaultRoute, serverConfig.baseUrl)
       const server = http.createServer(router)
       const boundHandlers = []
 
-      s.routes.forEach(r => {
-        const methods = arrayify(r.methods).map(m => m.toLowerCase())
+      serverConfig.routes.forEach(route => {
+        const methods = arrayify(route.methods).map(m => m.toLowerCase())
 
-        methods.forEach(m => {
-          const handler = handlers.get(r.handler)(
+        registerHandler(route.handler)
+
+        methods.forEach(method => {
+          const handler = handlers.get(route.handler)(
             frock,
-            logger.bind(null, r.handler),
-            r.options
+            logger.bind(null, route.handler),
+            route.options
           )
 
-          router[m](r.path, handler)
+          router[method](route.path, handler)
           boundHandlers.push(handler)
+
+          log('debug', `added route [${method}:${route.handler}] ${route.path}`)
         })
       })
 
       servers.push({server, handlers: boundHandlers})
-      server.listen(s.port, done)
+      server.listen(serverConfig.port, done)
+
+      log('info', `started server ${serverConfig.port}`)
     })
 
     function done () {
@@ -53,8 +61,16 @@ function createFrockInstance (config = {}) {
     }
   }
 
-  function registerHandler (name, handler) {
+  function registerHandler (name) {
+    if (handlers.has(name)) {
+      return
+    }
+
+    const handler = require(name)
+
     handlers.set(name, handler)
+
+    log('debug', `registered handler ${name}`)
   }
 
   function reload (ready = noop) {
