@@ -4,44 +4,53 @@ An plugin-based HTTP mock.
 
 ## Example
 
-In your working directory, create a `frockfile.js`:
+In your working directory, create a `frockfile.json`:
 
-```javascript
-var frock = require('frock')
-var frockStatic = require('frock-static')
-var frockProxy = require('frock-proxy')
-
-var instance = frock({
-  servers: [
+```json
+{
+  "servers": [
     {
-      port: 8080,
-      routes: [
+      "port": 8080,
+      "routes": [
         {
-          path: '/api/segments',
-          methods: ['GET'],
-          handler: 'static',
-          options: {
-            file: 'fixtures/static/segments.json',
-            contentType: 'application/json'
+          "path": "/api/segments",
+          "methods": ["GET"],
+          "handler": "frock-static",
+          "options": {
+            "file": "fixtures/static/segments.json",
+            "contentType": "application/json"
           }
         },
         {
-          path: '*',
-          methods: 'any',
-          handler: 'proxy',
-          options: {
-            url: 'http://localhost:8052'
+          "path": "/api/remote",
+          "methods": ["GET"],
+          "handler": "frock-static",
+          "options": {
+            "url": "http://paste.prod.urbanairship.com/raw/6255",
+            "contentType": "application/json"
+          }
+        },
+        {
+          "path": "/api/static/*",
+          "methods": ["GET"],
+          "handler": "frock-static",
+          "options": {
+            "dir": "fixtures/static/",
+            "baseUrl": "/api/static/"
+          }
+        },
+        {
+          "path": "*",
+          "methods": "any",
+          "handler": "frock-proxy",
+          "options": {
+            "url": "http://localhost:8052"
           }
         }
       ]
     }
   ]
-})
-
-instance.registerHandler('static', frockStatic)
-instance.registerHandler('proxy', frockProxy)
-
-instance.run()
+}
 ```
 
 Then, run frock:
@@ -57,33 +66,25 @@ $ frock
 Instantiates a new frock. Config is as defined above, and isn't exactly locked
 in yet.
 
-#### `instance.registerHandler(name, plugin)`
-
-Registers a handler (plugin).
-
-- `name`: (string) The unique name the handler is referred to as in your config.
-- `plugin`: (function) The plugin's factory function. See the section on Plugins
-  for details.
-
 #### `instance.run([ready])`
 
 Starts the mocks.
 
 - `ready`: (function) optional callback to execute after all servers are started
 
-#### `instance.end([ready])`
+#### `instance.reload([config] [, ready])`
+
+Stop and restart all servers, optionally loading a new config.
+
+- `config`: (object) an optional new config to load
+- `ready`: (function) optional callback to execute after all servers are
+  restarted
+
+#### `instance.stop([ready])`
 
 Shuts down all servers and handlers.
 
 - `ready`: (function) optional callback to execute after all servers are ended
-
-#### `instance.reload(config, [ready])`
-
-This doesn't work yet, but I bet you can guess what it does.
-
-- `config`: (object) a new config to load
-- `ready`: (function) optional callback to execute after all servers are
-  restarted
 
 ## Plugins
 
@@ -101,6 +102,12 @@ The factory function will be called whenever the frock is `run` or on `reload`.
   - `extra`: (optional) an object associated with the message
 - `options`: the options object that was in the frock config
 
+Additionally, the factory function must expose one method:
+
+- `factory.validate(config)` Validates a configuration object, returns a
+  `{key: 'error message'}` object on invalid configuration items, and a falsey
+  value if everything is good to go.
+
 The factory function must return a router:
 
 #### Router: `router(req, res)`
@@ -113,4 +120,4 @@ Called when the handler is shut down.
 
 ## License
 
-Apache 2.0
+Apache 2.0, see [LICENSE](./LICENSE) for details.

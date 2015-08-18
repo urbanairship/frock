@@ -1,21 +1,28 @@
 import http from 'http'
+import path from 'path'
 
 import commuter from 'commuter'
+import level from 'level'
+import mkdirp from 'mkdirp'
 import arrayify from 'arrify'
 
 export default createFrockInstance
 
 const log = logger.bind(null, 'frock')
 
-function createFrockInstance (config = {}) {
+function createFrockInstance (config = {}, {pwd}) {
   const frock = {}
   const handlers = new Map()
   const servers = []
+
+  // make our db directory, ok to throw
+  mkdirp.sync(path.join(pwd, '_db'))
 
   frock.run = run
   frock.stop = stop
   frock.reload = reload
   frock.registerHandler = registerHandler
+  frock.db = level(path.join(pwd, '_db', 'frock.leveldb'))
 
   return frock
 
@@ -73,7 +80,11 @@ function createFrockInstance (config = {}) {
     log('debug', `registered handler ${name}`)
   }
 
-  function reload (ready = noop) {
+  function reload (_config, ready = noop) {
+    if (_config) {
+      config = _config
+    }
+
     stop(() => run(ready))
   }
 
