@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+var fs = require('fs')
+var path = require('path')
 
 var cli = require('../lib/cli')
 
@@ -7,5 +9,6 @@ cli(process.argv.slice(2), function (err) {
     throw err
   }
 
-  console.log('frock: fired it up')
+  var logo = fs.createReadStream(path.join(__dirname, 'logo.txt'))
+  logo.pipe(process.stdout)
 })
