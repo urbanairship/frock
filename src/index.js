@@ -15,14 +15,17 @@ function createFrockInstance (config = {}, {pwd}) {
   const handlers = new Map()
   const servers = []
 
-  // make our db directory, ok to throw
-  mkdirp.sync(path.join(pwd, '_db'))
-
   frock.run = run
   frock.stop = stop
   frock.reload = reload
   frock.registerHandler = registerHandler
-  frock.db = level(path.join(pwd, '_db', 'frock.leveldb'))
+
+  // load db if requested
+  if (config.db) {
+    // make our db directory, ok to throw
+    mkdirp.sync(path.resolve(pwd, config.db.path))
+    frock.db = level(path.resolve(pwd, config.db.path, config.db.name))
+  }
 
   return frock
 
@@ -42,7 +45,7 @@ function createFrockInstance (config = {}, {pwd}) {
         methods.forEach(method => {
           const handler = handlers.get(route.handler)(
             frock,
-            logger.bind(null, route.handler),
+            logger.bind(null, `${route.handler}:${serverConfig.port}>`),
             route.options
           )
 
@@ -131,7 +134,7 @@ function defaultRoute (req, res) {
 }
 
 function logger (handler, level, msg, extra) {
-  console.log(`${handler}: [${level.toUpperCase()}] ${msg}`)
+  console.log(`${handler} [${level.toUpperCase()}] ${msg}`)
 }
 
 function noop () {

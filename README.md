@@ -8,6 +8,10 @@ In your working directory, create a `frockfile.json`:
 
 ```json
 {
+  "db": {
+    "path": "_db",
+    "name": "frock.leveldb"
+  },
   "servers": [
     {
       "port": 8080,
@@ -53,6 +57,12 @@ In your working directory, create a `frockfile.json`:
 }
 ```
 
+Install the plugins you requested:
+
+```shell
+$ npm install frock-static frock-proxy
+```
+
 Then, run frock:
 
 ```shell
@@ -96,6 +106,7 @@ specific properties. Frock plugins must take this shape:
 The factory function will be called whenever the frock is `run` or on `reload`.
 
 - `frock`: The frock instance
+  - `db`: The [level][levelup] instance
 - `logger`: (function) The frock logger. Function requires the following:
   - `level`: the log level (debug, info, warn, error)
   - `msg`: the message string to be logged
@@ -118,6 +129,23 @@ A router is a standard nodejs HTTP handler, with a few special methods attached:
 
 Called when the handler is shut down.
 
+### Database
+
+If you configure a `db` in your frockfile, `frock` will create a
+[level][levelup] instance for you, and pass it to any plugin. While many plugins
+are stateless, you may wish to write a mock with a persistent data store (and
+possibly shared across multiple mocks).
+
+Level is just a key/value store; it won't do anything to stop you from colliding
+with existing data, and there are no "tables" or permissions.
+
+Eventually `frock` will include some sort of "give me something unique" to avoid
+unintentional collisions, but it doesn't yet; and because some collisions might
+be intentional (such as a shared data store) it won't enforce any separation of
+data. Remember: this is _mocks_, not serious production code.
+
 ## License
 
 Apache 2.0, see [LICENSE](./LICENSE) for details.
+
+[levelup]: https://github.com/Level/levelup
