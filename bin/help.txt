@@ -1,0 +1,15 @@
+Usage: frock [options] [frockfile]
+
+frockfile   The JSON configuration file; will search upward for `frockfile.json`
+            from the `pwd` if one is not provided, failing if not found.
+
+Options:
+  -c --command <cmd>      Send a command to an already running frock
+  -p --patch <file.json>  Patch the running config with a JSON config file
+  -s --socket <path>      Specify a socket on which to find the running frock
+  --help                  Show this message
+  --version               Print version and quit
+
+Commands:
+  restart     Restart the currently running frock
+  stop        Stop the currently running frock
