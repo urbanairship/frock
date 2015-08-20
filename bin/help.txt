@@ -11,5 +11,5 @@ Options:
   --version               Print version and quit
 
 Commands:
-  restart     Restart the currently running frock
+  reload      Reload the currently running frock
   stop        Stop the currently running frock

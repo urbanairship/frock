@@ -69,6 +69,24 @@ Then, run frock:
 $ frock
 ```
 
+## CLI
+
+The when frock is run, it creates a foreground process that logs at whatever
+logging level you have set (`info` by default). However, you can control a
+running `frock` from your CLI:
+
+```shell
+$ frock -c reload  # stops and restarts all the currently running mocks
+```
+
+You can also patch a currently running config with a new one:
+
+```shell
+$ frock -p patch.json
+```
+
+Actually this is a lie and doesn't work yet, but it will! Cool!
+
 ## API
 
 ### `frock(config) -> instance`
@@ -125,9 +143,10 @@ The factory function must return a router:
 
 A router is a standard nodejs HTTP handler, with a few special methods attached:
 
-##### `end()`
+##### `end(cb)`
 
-Called when the handler is shut down.
+Called when the handler is shut down. Your plugin _must_ call the provided `cb`
+when its work is done.
 
 ### Database
 
