@@ -1,17 +1,19 @@
 import http from 'http'
 import path from 'path'
+import EE from 'events'
 
 import commuter from 'commuter'
 import level from 'level'
 import mkdirp from 'mkdirp'
 import arrayify from 'arrify'
+import enableDestroy from 'server-destroy'
 
 export default createFrockInstance
 
 const log = logger.bind(null, 'frock')
 
 function createFrockInstance (config = {}, {pwd}) {
-  const frock = {}
+  const frock = new EE()
   const handlers = new Map()
   const servers = []
 
@@ -56,8 +58,9 @@ function createFrockInstance (config = {}, {pwd}) {
         })
       })
 
-      servers.push({server, handlers: boundHandlers})
+      servers.push({server, handlers: boundHandlers, port: serverConfig.port})
       server.listen(serverConfig.port, done)
+      enableDestroy(server)
 
       log('info', `started server ${serverConfig.port}`)
     })
@@ -66,6 +69,7 @@ function createFrockInstance (config = {}, {pwd}) {
       ++count
 
       if (count >= config.servers.length) {
+        frock.emit('run')
         ready()
       }
     }
@@ -84,47 +88,63 @@ function createFrockInstance (config = {}, {pwd}) {
   }
 
   function reload (_config, ready = noop) {
+    log('info', 'reloading')
     if (_config) {
+      log('debug', 'replacing config', _config)
       config = _config
     }
 
-    stop(() => run(ready))
+    stop(true, () => {
+      run(() => {
+        frock.emit('reload')
+        ready()
+      })
+    })
   }
 
-  function stop (ready = noop) {
-    servers.forEach(s => {
-      s.handlers.forEach(h => {
-        h.end(innerDone)
+  function stop (hot = false, ready = noop) {
+    log('info', '### shutting down ###')
+    let serverCount = 0
+
+    servers.forEach(server => {
+      let handlerCount = 0
+
+      log('debug', `${server.port}: removing ${server.handlers.length} handlers`)
+      server.handlers.forEach((handler, index) => {
+        log('debug', `ending handler ${index}`)
+        handler.end(innerDone)
+
+        function innerDone () {
+          ++handlerCount
+
+          log('debug', `handler ended ${index}`)
+
+          if (handlerCount >= server.handlers.length) {
+            log('debug', `no handlers remain, closing server ${server.port}`)
+            server.handlers.splice(0, server.handlers.length)
+            server.server.destroy(done)
+          }
+        }
       })
 
-      function innerDone (handler) {
-        const idx = s.handlers.indexOf(handler)
+      function done () {
+        ++serverCount
 
-        if (idx) {
-          s.handlers.splice(idx, 1)
-        } else {
-          throw new Error('No handler to remove, throwing to avoid infinite loop')
-        }
+        log('debug', `server closed ${server.port}`)
 
-        if (!s.handlers.length) {
-          s.server.close(() => done(s))
+        if (serverCount >= servers.length) {
+          log('debug', 'servers stopped')
+          servers.splice(0, servers.length)
+
+          // if we're hot-reloading, we aren't actually stoping; don't emit
+          if (!hot) {
+            frock.emit('stop')
+          }
+
+          ready()
         }
       }
     })
-
-    function done (server) {
-      const idx = servers.indexOf(server)
-
-      if (idx) {
-        servers.splice(idx, 1)
-      } else {
-        throw new Error('No server to remove, throwing to avoid infinite loop')
-      }
-
-      if (!servers.length) {
-        ready()
-      }
-    }
   }
 }
 

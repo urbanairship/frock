@@ -1,12 +1,13 @@
 import fs from 'fs'
 import path from 'path'
-import net from 'net'
 
 import tmpDir from 'os-tmpdir'
 import minimist from 'minimist'
 import find from 'fs-find-root'
 
 import createFrockInstance from './'
+import startCommandServer from './server.js'
+import connectCommandClient from './client.js'
 
 export default processCli
 
@@ -29,8 +30,9 @@ function processCli (args, ready) {
   let file = argv._[0]
   let socket = argv.socket ? path.resolve(socket) : null
 
+  // if we were given a command and a socket, no need to read the frockfile
   if (argv.command && socket) {
-    connectServer(socket, argv, ready)
+    return connectCommandClient(socket, argv, ready)
   }
 
   // if we weren't given a frockfile path, find one
@@ -48,6 +50,7 @@ function processCli (args, ready) {
     return
   }
 
+  // otherwise, we had a path, so just read the frockfile
   fs.readFile(file, onFrockfile)
 
   function onFrockfile (err, _frockfile) {
@@ -70,74 +73,16 @@ function processCli (args, ready) {
     }
 
     if (argv.command) {
-      connectServer(socket, argv, ready)
-
-      return
+      return connectCommandClient(socket, argv, ready)
     }
 
-    startServer()
+    const frock = createFrockInstance(frockfile, argv)
 
-    function startServer () {
-      const frock = createFrockInstance(frockfile, argv)
-      const server = net.createServer(client => {
-        client.on('data', data => {
-          const command = data.toString()
-
-          if (command === 'restart') {
-            console.log('would restart')
-          } else if (command === 'stop') {
-            console.log('would stop')
-          } else {
-            console.log('unrecognized command', command)
-          }
-
-          client.write('success')
-        })
+    // start command server, then run the frock after it's up
+    startCommandServer(frock, socket, () => {
+      frock.run(() => {
+        ready(null, {argv, frock, frockfile, launched: true})
       })
-
-      server.listen(socket, () => {
-        // on shutdown we need to murder the socket
-        process.on('SIGINT', () => {
-          console.log('cleaning up...')
-          server.close(() => {
-            try {
-              fs.unlinkSync(socket)
-            } finally {
-              process.exit(1)
-            }
-          })
-
-          setTimeout(() => {
-            console.log('failed to clean up in a reasonable time, forcing...')
-            try {
-              fs.unlinkSync(socket)
-            } finally {
-              process.exit(1)
-            }
-          }, 2000)
-        })
-
-        frock.run(() => {
-          ready(null, {argv, frock, frockfile, launched: true})
-        })
-      })
-    }
-  }
-
-  function connectServer (path, argv, ready) {
-    const client = net.connect({path}, () => {
-      console.log('connected')
-      client.write(argv.command)
-    })
-
-    client.on('data', data => {
-      console.log(data.toString())
-      client.end()
-    })
-
-    client.on('end', () => {
-      console.log('done')
-      ready(null, {success: true})
     })
   }
 }
