@@ -8,6 +8,8 @@ import mkdirp from 'mkdirp'
 import arrayify from 'arrify'
 import enableDestroy from 'server-destroy'
 
+import addUtils from './utils'
+
 export default createFrockInstance
 
 const log = logger.bind(null, 'frock')
@@ -26,7 +28,10 @@ function createFrockInstance (config = {}, {pwd}) {
   if (config.db) {
     // make our db directory, ok to throw
     mkdirp.sync(path.resolve(pwd, config.db.path))
-    frock.db = level(path.resolve(pwd, config.db.path, config.db.name))
+    frock.db = level(
+      path.resolve(pwd, config.db.path, config.db.name),
+      {valueEncoding: 'json'}
+    )
   }
 
   return frock
@@ -36,7 +41,7 @@ function createFrockInstance (config = {}, {pwd}) {
 
     config.servers.forEach(serverConfig => {
       const router = commuter(defaultRoute, serverConfig.baseUrl)
-      const server = http.createServer(router)
+      const server = http.createServer(addUtils(logger.bind(null, 'middleware'), router))
       const boundHandlers = []
 
       serverConfig.routes.forEach(route => {
@@ -80,7 +85,7 @@ function createFrockInstance (config = {}, {pwd}) {
       return
     }
 
-    const handler = require(name)
+    const handler = require(path.join(pwd, 'node_modules', name))
 
     handlers.set(name, handler)
 
