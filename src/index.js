@@ -9,7 +9,7 @@ import arrayify from 'arrify'
 import {sync as resolve} from 'resolve'
 import enableDestroy from 'server-destroy'
 
-import addUtils from './utils'
+import addUtilMiddleware from './utils'
 
 export default createFrockInstance
 
@@ -42,7 +42,7 @@ function createFrockInstance (config = {}, {pwd}) {
 
     config.servers.forEach(serverConfig => {
       const router = commuter(defaultRoute, serverConfig.baseUrl)
-      const server = http.createServer(addUtils(logger.bind(null, 'middleware'), router))
+      const server = http.createServer(router)
       const boundHandlers = []
 
       serverConfig.routes.forEach(route => {
@@ -51,13 +51,20 @@ function createFrockInstance (config = {}, {pwd}) {
         registerHandler(route.handler)
 
         methods.forEach(method => {
+          const logId = `${route.handler}:${serverConfig.port}>`
           const handler = handlers.get(route.handler)(
             frock,
-            logger.bind(null, `${route.handler}:${serverConfig.port}>`),
+            logger.bind(null, logId),
             route.options
           )
 
-          router[method](route.path, handler)
+          router[method](
+            route.path,
+            addUtilMiddleware(
+              logger.bind(null, logId),
+              handler
+            )
+          )
           boundHandlers.push(handler)
 
           log('debug', `added route [${method}:${route.handler}] ${route.path}`)

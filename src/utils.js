@@ -1,21 +1,27 @@
 import url from 'url'
 
-export default addUtils
+export default addUtilMiddleware
 
-function addUtils (logger, router) {
+function addUtilMiddleware (logger, router) {
   return processRequest
 
   function processRequest (req, res) {
+    logRequestStarted()
+
     const parsedUrl = url.parse(req.url, true)
+
+    req.GET = parsedUrl.query || {}
 
     res.json = json
     res.e404 = e404
+    res.e500 = e500
     res.error = error
-    req.GET = parsedUrl.query || {}
+
+    res.on('finish', logRequestFinished)
 
     router(req, res)
 
-    function json (raw, status = 200) {
+    function json (raw, status = 200, {contentType = 'application/json'} = {}) {
       let data
 
       try {
@@ -25,13 +31,13 @@ function addUtils (logger, router) {
         status = 500
       }
 
-      res.setHeader('Content-Type', 'application/json')
+      res.setHeader('Content-Type', contentType)
 
       res.statusCode = status
       res.end(data)
     }
 
-    function e404 (data) {
+    function _exxx (data, status) {
       if (typeof data === 'object') {
         return json(data, 404)
       }
@@ -40,9 +46,25 @@ function addUtils (logger, router) {
       res.end(data)
     }
 
+    function e404 (data) {
+      _exxx(data, 404)
+    }
+
+    function e500 (data) {
+      _exxx(data, 500)
+    }
+
     function error (e, status = 500) {
       res.statusCode = 500
       res.end(e)
+    }
+
+    function logRequestStarted () {
+      logger('debug', `${req.method}[INCOMING] ${req.url}`)
+    }
+
+    function logRequestFinished () {
+      logger('info', `${req.method}[${res.statusCode}] ${req.url}`)
     }
   }
 }
