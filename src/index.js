@@ -6,6 +6,7 @@ import commuter from 'commuter'
 import level from 'level'
 import mkdirp from 'mkdirp'
 import arrayify from 'arrify'
+import {sync as resolve} from 'resolve'
 import enableDestroy from 'server-destroy'
 
 import addUtils from './utils'
@@ -85,7 +86,8 @@ function createFrockInstance (config = {}, {pwd}) {
       return
     }
 
-    const handler = require(path.join(pwd, 'node_modules', name))
+    const handlerPath = resolve(name, {basedir: pwd})
+    const handler = require(handlerPath)
 
     handlers.set(name, handler)
 
