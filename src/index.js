@@ -23,12 +23,13 @@ function createFrockInstance (config = {}, {pwd}) {
 
   let dbPath
 
+  frock.dbs = dbs
   frock.run = run
   frock.stop = stop
   frock.reload = reload
   frock.registerHandler = registerHandler
 
-  // load db if requested
+  // configure db if requested
   if (config.db) {
     // make our db directory, ok to throw
     mkdirp.sync(path.resolve(pwd, config.db.path))
@@ -37,25 +38,31 @@ function createFrockInstance (config = {}, {pwd}) {
 
   return frock
 
-  function getDb (name) {
+  function getOrCreateDb (_name) {
     if (!dbPath) {
       throw new Error(
         `A handler requested a database, but a database path wasn't specified.`
       )
     }
 
-    if (dbs.has(name)) {
-      return dbs.get(name)
-    }
+    const names = arrayify(_name)
 
-    const db = level(
-      path.resolve(dbPath, name),
-      {valueEncoding: 'json'}
-    )
+    const retrieved = names.map(name => {
+      if (dbs.has(name)) {
+        return dbs.get(name)
+      }
 
-    dbs.set(name, db)
+      const db = level(
+        path.resolve(dbPath, name),
+        {valueEncoding: 'json'}
+      )
 
-    return db
+      dbs.set(name, db)
+
+      return db
+    })
+
+    return retrieved.length > 1 ? retrieved : retrieved[0]
   }
 
   function run (ready = noop) {
@@ -77,7 +84,7 @@ function createFrockInstance (config = {}, {pwd}) {
             frock,
             logger.bind(null, logId),
             route.options,
-            route.db ? getDb(route.db) : null
+            route.db ? getOrCreateDb(route.db) : null
           )
 
           router[method](

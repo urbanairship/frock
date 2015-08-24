@@ -33,6 +33,7 @@ function startCommandServer (frock, socket, ready) {
     ready(server)
   })
 
+  process.on('uncaughtException', handleUncaughtException)
   process.on('SIGINT', stopServer)
   frock.on('stop', stopServer)
 
@@ -44,6 +45,11 @@ function startCommandServer (frock, socket, ready) {
       console.log('failed to clean up in a reasonable time, forcing...')
       unlinkThenExit(1)
     }, 2000)
+  }
+
+  function handleUncaughtException (err) {
+    console.error(err.stack)
+    unlinkThenExit(1)
   }
 
   function unlinkThenExit (code) {

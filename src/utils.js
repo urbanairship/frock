@@ -14,6 +14,7 @@ function addUtilMiddleware (logger, router) {
 
     res.json = json
     res.e404 = e404
+    res.e400 = e400
     res.e500 = e500
     res.error = error
 
@@ -39,11 +40,15 @@ function addUtilMiddleware (logger, router) {
 
     function _exxx (data, status) {
       if (typeof data === 'object') {
-        return json(data, 404)
+        return json(data, status)
       }
 
-      res.statusCode = 404
+      res.statusCode = status
       res.end(data)
+    }
+
+    function e400 (data) {
+      _exxx(data, 400)
     }
 
     function e404 (data) {
