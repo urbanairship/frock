@@ -28,6 +28,7 @@ function createFrockInstance (config = {}, {pwd}) {
   frock.stop = stop
   frock.reload = reload
   frock.registerHandler = registerHandler
+  frock.logger = logger
 
   // configure db if requested
   if (config.db) {

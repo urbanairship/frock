@@ -1,14 +1,14 @@
 import fs from 'fs'
 import path from 'path'
 
-import chokidar from 'chokidar'
 import tmpDir from 'os-tmpdir'
 import minimist from 'minimist'
 import find from 'fs-find-root'
 
 import createFrockInstance from './'
-import startCommandServer from './server.js'
-import connectCommandClient from './client.js'
+import startCommandServer from './server'
+import connectCommandClient from './client'
+import createWatcher from './watcher'
 
 export default processCli
 
@@ -83,34 +83,12 @@ function processCli (args, ready) {
     // start command server, then run the frock after it's up
     startCommandServer(frock, socket, () => {
       frock.run(() => {
-        // TODO this file watching stuff should be elsewhere
         if (!argv.nowatch) {
-          chokidar.watch(file)
-            .on('change', onFrockfileChange)
+          createWatcher(frock, frock.logger.bind(null, 'watcher'), file)
         }
 
         ready(null, {argv, frock, frockfile, launched: true})
       })
     })
-
-    function onFrockfileChange (path) {
-      fs.readFile(path, (err, config) => {
-        if (err) {
-          console.error(new Error(`Error hot-reloading frockfile`))
-        }
-
-        try {
-          frockfile = JSON.parse(config.toString())
-        } catch (e) {
-          console.error(new Error(`Error parsing frockfile: ${e}`))
-
-          return
-        }
-
-        frock.reload(frockfile, () => {
-          console.log('reloaded')
-        })
-      })
-    }
   }
 }
