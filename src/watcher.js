@@ -2,10 +2,13 @@ import fs from 'fs'
 import {EventEmitter} from 'events'
 
 import chokidar from 'chokidar'
+import bole from 'bole'
 
 export default createWatcher
 
-function createWatcher (frock, logger, file) {
+const log = bole('frock/watcher')
+
+function createWatcher (frock, file) {
   const events = new EventEmitter()
 
   chokidar.watch(file)
@@ -20,13 +23,13 @@ function createWatcher (frock, logger, file) {
       if (err) {
         events.emit('error', err)
 
-        return logger('error', 'Error hot-reloading frockfile', err)
+        return log.error('Error hot-reloading frockfile', err)
       }
 
       try {
         frockfile = JSON.parse(config.toString())
       } catch (e) {
-        logger('error', `Error parsing frockfile: ${e}`, e)
+        log.error(`Error parsing frockfile: ${e}`, e)
 
         return
       }
@@ -34,7 +37,7 @@ function createWatcher (frock, logger, file) {
       events.emit('change', frockfile)
 
       frock.reload(frockfile, () => {
-        logger('info', 'Reloaded on frockfile file change')
+        log.info('Reloaded on frockfile file change')
 
         events.emit('reload', frockfile)
       })

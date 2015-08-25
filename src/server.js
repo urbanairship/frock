@@ -1,7 +1,11 @@
 import fs from 'fs'
 import net from 'net'
 
+import bole from 'bole'
+
 export default startCommandServer
+
+const log = bole('frock/server')
 
 function startCommandServer (frock, socket, ready) {
   const server = net.createServer(client => {
@@ -29,7 +33,7 @@ function startCommandServer (frock, socket, ready) {
   })
 
   server.listen(socket, () => {
-    console.log(`## frock command server running on ${socket} ##`)
+    log.info(`running on ${socket}`)
     ready(server)
   })
 
@@ -38,11 +42,11 @@ function startCommandServer (frock, socket, ready) {
   frock.on('stop', stopServer)
 
   function stopServer () {
-    console.log('\ncleaning up...')
+    log.info('cleaning up...')
     server.close(() => unlinkThenExit(1))
 
     setTimeout(() => {
-      console.log('failed to clean up in a reasonable time, forcing...')
+      log.error('failed to clean up in a reasonable time, forcing...')
       unlinkThenExit(1)
     }, 2000)
   }

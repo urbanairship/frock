@@ -8,12 +8,13 @@ import mkdirp from 'mkdirp'
 import arrayify from 'arrify'
 import {sync as resolve} from 'resolve'
 import enableDestroy from 'server-destroy'
+import bole from 'bole'
 
 import addUtilMiddleware from './utils'
 
 export default createFrockInstance
 
-const log = logger.bind(null, 'frock')
+const log = bole('frock/index')
 
 function createFrockInstance (config = {}, {pwd}) {
   const frock = new EE()
@@ -28,7 +29,6 @@ function createFrockInstance (config = {}, {pwd}) {
   frock.stop = stop
   frock.reload = reload
   frock.registerHandler = registerHandler
-  frock.logger = logger
 
   // configure db if requested
   if (config.db) {
@@ -83,7 +83,7 @@ function createFrockInstance (config = {}, {pwd}) {
           const logId = `${route.handler}:${serverConfig.port}>`
           const handler = handlers.get(route.handler)(
             frock,
-            logger.bind(null, logId),
+            bole(logId),
             route.options,
             route.db ? getOrCreateDb(route.db) : null
           )
@@ -91,13 +91,13 @@ function createFrockInstance (config = {}, {pwd}) {
           router[method](
             route.path,
             addUtilMiddleware(
-              logger.bind(null, logId),
+              bole(logId),
               handler
             )
           )
           boundHandlers.push(handler)
 
-          log('debug', `added route [${method}:${route.handler}] ${route.path}`)
+          log.debug(`added route [${method}:${route.handler}] ${route.path}`)
         })
       })
 
@@ -105,7 +105,7 @@ function createFrockInstance (config = {}, {pwd}) {
       server.listen(serverConfig.port, done)
       enableDestroy(server)
 
-      log('info', `started server ${serverConfig.port}`)
+      log.info(`started server ${serverConfig.port}`)
     })
 
     function done () {
@@ -128,13 +128,13 @@ function createFrockInstance (config = {}, {pwd}) {
 
     handlers.set(name, handler)
 
-    log('debug', `registered handler ${name}`)
+    log.debug(`registered handler ${name}`)
   }
 
   function reload (_config, ready = noop) {
-    log('info', 'reloading')
+    log.info('reloading')
     if (_config) {
-      log('debug', 'replacing config', _config)
+      log.debug('replacing config', _config)
       config = _config
     }
 
@@ -147,30 +147,30 @@ function createFrockInstance (config = {}, {pwd}) {
   }
 
   function stop (hot = false, ready = noop) {
-    log('info', '### shutting down ###')
+    log.info('### shutting down ###')
     let serverCount = 0
 
     servers.forEach(server => {
       let handlerCount = 0
 
-      log('debug', `${server.port}: removing ${server.handlers.length} handlers`)
+      log.debug(`${server.port}: removing ${server.handlers.length} handlers`)
       server.handlers.forEach((handler, index) => {
-        log('debug', `ending handler ${index}`)
+        log.debug(`ending handler ${index}`)
 
         if (handler.end) {
           handler.end(innerDone)
         } else {
-          log('error', `handler ${index} did not have a .end function`)
+          log.error(`handler ${index} did not have a .end function`)
           innerDone()
         }
 
         function innerDone () {
           ++handlerCount
 
-          log('debug', `handler ended ${index}`)
+          log.debug(`handler ended ${index}`)
 
           if (handlerCount >= server.handlers.length) {
-            log('debug', `no handlers remain, closing server ${server.port}`)
+            log.debug(`no handlers remain, closing server ${server.port}`)
             server.handlers.splice(0, server.handlers.length)
             server.server.destroy(done)
           }
@@ -180,10 +180,10 @@ function createFrockInstance (config = {}, {pwd}) {
       function done () {
         ++serverCount
 
-        log('debug', `server closed ${server.port}`)
+        log.debug(`server closed ${server.port}`)
 
         if (serverCount >= servers.length) {
-          log('debug', 'servers stopped')
+          log.debug('servers stopped')
           servers.splice(0, servers.length)
 
           // if we're hot-reloading, we aren't actually stoping; don't emit
@@ -201,10 +201,6 @@ function createFrockInstance (config = {}, {pwd}) {
 function defaultRoute (req, res) {
   res.statusCode = 404
   res.end('not found')
-}
-
-function logger (handler, level, msg, extra) {
-  console.log(`${handler} [${level.toUpperCase()}] ${msg}`)
 }
 
 function noop () {

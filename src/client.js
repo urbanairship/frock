@@ -4,7 +4,6 @@ export default connectCommandClient
 
 function connectCommandClient (socket, argv, ready) {
   const client = net.connect({path: socket}, () => {
-    console.log('connected')
     client.write(argv.command.trim())
   })
 

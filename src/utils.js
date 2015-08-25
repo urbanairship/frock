@@ -2,7 +2,7 @@ import url from 'url'
 
 export default addUtilMiddleware
 
-function addUtilMiddleware (logger, router) {
+function addUtilMiddleware (log, router) {
   return processRequest
 
   function processRequest (req, res) {
@@ -65,11 +65,11 @@ function addUtilMiddleware (logger, router) {
     }
 
     function logRequestStarted () {
-      logger('debug', `${req.method}[INCOMING] ${req.url}`)
+      log.debug(`${req.method}[INCOMING] ${req.url}`)
     }
 
     function logRequestFinished () {
-      logger('info', `${req.method}[${res.statusCode}] ${req.url}`)
+      log.info(`${req.method}[${res.statusCode}] ${req.url}`)
     }
   }
 }

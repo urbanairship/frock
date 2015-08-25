@@ -4,6 +4,8 @@ import path from 'path'
 import tmpDir from 'os-tmpdir'
 import minimist from 'minimist'
 import find from 'fs-find-root'
+import bole from 'bole'
+import garnish from 'garnish'
 
 import createFrockInstance from './'
 import startCommandServer from './server'
@@ -19,11 +21,26 @@ function processCli (args, ready) {
     alias: {
       command: 'c',
       socket: 's',
-      nowatch: 'w'
+      nowatch: 'w',
+      debug: 'd',
+      raw: 'r'
     },
-    boolean: ['nowatch']
+    boolean: ['nowatch', 'debug', 'raw']
   }
   const argv = minimist(args, options)
+  const logLevel = argv.debug ? 'debug' : 'info'
+
+  let logOutput = process.stdout
+
+  if (!argv.raw) {
+    logOutput = garnish({level: logLevel})
+    logOutput.pipe(process.stdout)
+  }
+
+  bole.output({
+    level: logLevel,
+    stream: logOutput
+  })
 
   if (argv.version || argv.help) {
     return ready(null, {version: argv.version, help: argv.help})
@@ -84,7 +101,7 @@ function processCli (args, ready) {
     startCommandServer(frock, socket, () => {
       frock.run(() => {
         if (!argv.nowatch) {
-          createWatcher(frock, frock.logger.bind(null, 'watcher'), file)
+          createWatcher(frock, file)
         }
 
         ready(null, {argv, frock, frockfile, launched: true})
