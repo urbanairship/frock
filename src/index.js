@@ -156,7 +156,13 @@ function createFrockInstance (config = {}, {pwd}) {
       log('debug', `${server.port}: removing ${server.handlers.length} handlers`)
       server.handlers.forEach((handler, index) => {
         log('debug', `ending handler ${index}`)
-        handler.end(innerDone)
+
+        if (handler.end) {
+          handler.end(innerDone)
+        } else {
+          log('error', `handler ${index} did not have a .end function`)
+          innerDone()
+        }
 
         function innerDone () {
           ++handlerCount
