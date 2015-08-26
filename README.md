@@ -9,8 +9,10 @@ In your working directory, create a `frockfile.json`:
 ```json
 {
   "db": {
-    "path": "_db",
-    "name": "frock.leveldb"
+    "path": "_db"
+  },
+  "connection": {
+    "whitelist": ["127.0.0.1", "::1"]
   },
   "servers": [
     {
@@ -30,7 +32,7 @@ In your working directory, create a `frockfile.json`:
           "methods": ["GET"],
           "handler": "frock-static",
           "options": {
-            "url": "http://paste.prod.urbanairship.com/raw/6255",
+            "url": "http://raw.githubusercontent.com/somewhere/something.json",
             "contentType": "application/json"
           }
         },
@@ -79,14 +81,6 @@ running `frock` from your CLI:
 $ frock -c reload  # stops and restarts all the currently running mocks
 ```
 
-You can also patch a currently running config with a new one:
-
-```shell
-$ frock -p patch.json
-```
-
-Actually this is a lie and doesn't work yet, but it will! Cool!
-
 ## API
 
 ### `frock(config) -> instance`
@@ -125,10 +119,9 @@ The factory function will be called whenever the frock is `run` or on `reload`.
 
 - `frock`: The frock instance
   - `db`: The [level][levelup] instance
-- `logger`: (function) The frock logger. Function requires the following:
-  - `level`: the log level (debug, info, warn, error)
-  - `msg`: the message string to be logged
-  - `extra`: (optional) an object associated with the message
+- `logger`: (function) The frock logger. A [bole][] instance that's
+  contextualized with your plugin name and the port on which you're running.
+  Example: `logger.info('some message', someObj)`
 - `options`: the options object that was in the frock config
 
 Additionally, the factory function must expose one method:
@@ -150,21 +143,42 @@ when its work is done.
 
 ### Database
 
-If you configure a `db` in your frockfile, `frock` will create a
-[level][levelup] instance for you, and pass it to any plugin. While many plugins
-are stateless, you may wish to write a mock with a persistent data store (and
-possibly shared across multiple mocks).
+If you create a `db` in your frockfile, you can request a db to be passed to any
+plugin; you can use this to create some persistence in your mocks. A database is
+passed per name, so it's up to you to define how you use them. This isn't meant
+to be safe; it's meant to be flexible. An example config:
 
-Level is just a key/value store; it won't do anything to stop you from colliding
-with existing data, and there are no "tables" or permissions.
+```json
+{
+  "db": {
+    "path": "_db"
+  },
+  "servers": [
+    {
+      "port": 8081,
+      "routes": [
+        {
+          "path": "/api/whatever/*",
+          "methods": ["GET"],
+          "handler": "some-handler",
+          "db": "some-db"
+        }
+      ]
+    }
+  ]
+}
+```
 
-Eventually `frock` will include some sort of "give me something unique" to avoid
-unintentional collisions, but it doesn't yet; and because some collisions might
-be intentional (such as a shared data store) it won't enforce any separation of
-data. Remember: this is _mocks_, not serious production code.
+When you use this config, a [level][levelup] instance called "some-db" will be
+created in your `db.path` folder that was specified, and it'll be passed as the
+last parameter to the `frock` plugin's factory function.
+
+You can also call any frock instance's `db.get(name)` to get the DB; you can use
+this to access other running mock's databases.
 
 ## License
 
 Apache 2.0, see [LICENSE](./LICENSE) for details.
 
 [levelup]: https://github.com/Level/levelup
+[bole]: http://npm.im/bole

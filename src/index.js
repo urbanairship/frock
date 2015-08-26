@@ -3,12 +3,14 @@ import path from 'path'
 import EE from 'events'
 
 import commuter from 'commuter'
+import createDeter from 'deter'
 import level from 'level'
 import mkdirp from 'mkdirp'
 import arrayify from 'arrify'
 import {sync as resolve} from 'resolve'
 import enableDestroy from 'server-destroy'
 import bole from 'bole'
+import props from 'deep-property'
 
 import addUtilMiddleware from './utils'
 
@@ -22,6 +24,8 @@ function createFrockInstance (config = {}, {pwd}) {
   const servers = []
   const dbs = new Map()
 
+  let globalConstraints = {}
+
   let dbPath
 
   frock.dbs = dbs
@@ -29,13 +33,6 @@ function createFrockInstance (config = {}, {pwd}) {
   frock.stop = stop
   frock.reload = reload
   frock.registerHandler = registerHandler
-
-  // configure db if requested
-  if (config.db) {
-    // make our db directory, ok to throw
-    mkdirp.sync(path.resolve(pwd, config.db.path))
-    dbPath = path.resolve(pwd, config.db.path)
-  }
 
   return frock
 
@@ -69,9 +66,33 @@ function createFrockInstance (config = {}, {pwd}) {
   function run (ready = noop) {
     let count = 0
 
+    globalConstraints = {
+      whitelist: props.get(config, 'connection.whitelist'),
+      blacklist: props.get(config, 'connection.blacklist')
+    }
+
+    // default to localhost only connections if not specified
+    if (!globalConstraints.whitelist && !globalConstraints.blacklist) {
+      globalConstraints.whitelist = ['127.0.0.1', '::1']
+    }
+
+    // configure db if requested
+    if (config.db) {
+      // make our db directory, ok to throw
+      mkdirp.sync(path.resolve(pwd, config.db.path))
+      dbPath = path.resolve(pwd, config.db.path)
+    }
+
     config.servers.forEach(serverConfig => {
+      let constraints = serverConfig.connection || {}
+
+      if (!constraints.whitelist && !constraints.blacklist) {
+        constraints = globalConstraints
+      }
+
+      const deter = createDeter(constraints, onWhitelistFail)
       const router = commuter(defaultRoute, serverConfig.baseUrl)
-      const server = http.createServer(router)
+      const server = http.createServer(deter(router))
       const boundHandlers = []
 
       serverConfig.routes.forEach(route => {
@@ -201,6 +222,12 @@ function createFrockInstance (config = {}, {pwd}) {
 function defaultRoute (req, res) {
   res.statusCode = 404
   res.end('not found')
+}
+
+function onWhitelistFail (req, res) {
+  log.info('access from non-whitelisted, or from blacklisted address')
+  res.statusCode = 403
+  res.end('access from non-whitelisted, or from blacklisted address')
 }
 
 function noop () {
