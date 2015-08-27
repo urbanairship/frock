@@ -43,6 +43,10 @@ function addUtilMiddleware (log, router) {
         return json(data, status)
       }
 
+      if (data.toString) {
+        data = data.toString()
+      }
+
       res.statusCode = status
       res.end(data)
     }
@@ -60,8 +64,9 @@ function addUtilMiddleware (log, router) {
     }
 
     function error (e, status = 500) {
-      res.statusCode = 500
-      res.end(e)
+      log.debug(e.stack)
+
+      _exxx(e, status)
     }
 
     function logRequestStarted () {

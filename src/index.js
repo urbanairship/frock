@@ -28,11 +28,13 @@ function createFrockInstance (config = {}, {pwd}) {
 
   let dbPath
 
+  frock.pwd = pwd
   frock.dbs = dbs
   frock.run = run
   frock.stop = stop
   frock.reload = reload
   frock.registerHandler = registerHandler
+  frock.getOrCreateDb = getOrCreateDb
 
   return frock
 
@@ -225,9 +227,11 @@ function defaultRoute (req, res) {
 }
 
 function onWhitelistFail (req, res) {
-  log.info('access from non-whitelisted, or from blacklisted address')
+  const msg = 'access from non-whitelisted, or from blacklisted address'
+
   res.statusCode = 403
-  res.end('access from non-whitelisted, or from blacklisted address')
+  res.end(msg)
+  log.info(msg)
 }
 
 function noop () {

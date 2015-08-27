@@ -30,7 +30,7 @@
     "chokidar": "^1.0.5",
     "commuter": "^2.0.0",
     "deep-property": "^1.1.0",
-    "deter": "^1.0.1",
+    "deter": "^1.0.3",
     "fs-find-root": "^1.0.2",
     "garnish": "^2.3.0",
     "level": "^1.3.0",
