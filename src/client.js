@@ -1,24 +1,59 @@
-import net from 'net'
+import http from 'http'
+
+import bole from 'bole'
+import concat from 'concat-stream'
 
 export default connectCommandClient
 
-function connectCommandClient (socket, argv, ready) {
-  const client = net.connect({path: socket}, () => {
-    client.write(argv.command.trim())
-  })
+const log = bole('frock/client')
 
-  let success = false
-  let code
+function connectCommandClient (socket, argv, config, ready) {
+  const payload = {command: argv.command.trim(), config}
+  const postData = JSON.stringify(payload)
 
-  client.on('data', data => {
-    code = Number(data.toString())
-    client.end()
-  })
+  let called = false
 
-  client.on('end', () => {
-    if (!code) {
-      success = true
+  const req = http.request({socketPath: socket}, (res) => {
+    res.on('error', onError)
+    res.pipe(concat(done))
+
+    function done (data) {
+      let response
+
+      if (data && data.length) {
+        try {
+          response = JSON.parse(data.toString())
+        } catch (e) {
+          response = null
+
+          log.error(`Got error parsing response: ${e.toString()}`)
+        }
+      }
+
+      if (res.statusCode !== 200) {
+        log.error(`Error ${res.statusCode}`, response)
+      }
+
+      if (!called) {
+        called = true
+
+        ready(null, {success: true, data})
+      }
     }
-    ready(null, {success, code})
   })
+
+  req.setHeader('Content-Type', 'application/json')
+  req.setHeader('Content-Length', postData.length)
+  req.write(postData)
+  req.end()
+
+  function onError (err) {
+    log.error(err.toString(), err)
+
+    if (!called) {
+      called = true
+
+      ready(err)
+    }
+  }
 }

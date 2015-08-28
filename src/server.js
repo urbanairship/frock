@@ -1,49 +1,73 @@
 import fs from 'fs'
-import net from 'net'
+import http from 'http'
 
 import bole from 'bole'
+import body from 'body/json'
+import enableDestroy from 'server-destroy'
+
+import addUtilMiddleware from './utils'
 
 export default startCommandServer
 
 const log = bole('frock/server')
 
 function startCommandServer (frock, socket, ready) {
-  const server = net.createServer(client => {
-    client.on('data', data => {
-      const command = data.toString()
-
-      if (command === 'reload') {
-        frock.once('reload', done)
-        frock.reload()
-
-        return
-      } else if (command === 'stop') {
-        frock.once('stop', done)
-        frock.stop()
-
-        return
-      }
-
-      done(1)
-
-      function done (code = 0) {
-        client.write(String(code))
-      }
-    })
-  })
+  const server = http.createServer(addUtilMiddleware(log, handleCommand))
 
   server.listen(socket, () => {
     log.info(`running on ${socket}`)
     ready(server)
   })
 
+  enableDestroy(server)
+
   process.on('uncaughtException', handleUncaughtException)
   process.on('SIGINT', stopServer)
   frock.on('stop', stopServer)
 
+  return server
+
+  function handleCommand (req, res) {
+    body(req, res, (err, data) => {
+      if (err) {
+        log.debug('got bad json body', err)
+
+        return res.e500(err)
+      }
+
+      const command = data.command
+
+      if (!command) {
+        return res.e400('no command provided')
+      }
+
+      if (command === 'reload') {
+        frock.reload(data.config, done)
+
+        return
+      } else if (command === 'stop') {
+        frock.stop(done)
+
+        return
+      }
+    })
+
+    function done (err, result) {
+      if (err) {
+        log.debug('got error from command', err)
+
+        return res.e500(err)
+      }
+
+      log.debug('successfully executed command', result)
+
+      res.json(result)
+    }
+  }
+
   function stopServer () {
     log.info('cleaning up...')
-    server.close(() => unlinkThenExit(1))
+    server.destroy(() => unlinkThenExit(1))
 
     setTimeout(() => {
       log.error('failed to clean up in a reasonable time, forcing...')

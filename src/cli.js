@@ -50,8 +50,9 @@ function processCli (args, ready) {
   let socket = argv.socket ? path.resolve(socket) : null
 
   // if we were given a command and a socket, no need to read the frockfile
-  if (argv.command && socket) {
-    return connectCommandClient(socket, argv, ready)
+  // unless specified explicitly
+  if (argv.command && socket && !argv._[0]) {
+    return connectCommandClient(socket, argv, null, ready)
   }
 
   // if we weren't given a frockfile path, find one
@@ -92,7 +93,7 @@ function processCli (args, ready) {
     }
 
     if (argv.command) {
-      return connectCommandClient(socket, argv, ready)
+      return connectCommandClient(socket, argv, frockfile, ready)
     }
 
     const frock = createFrockInstance(frockfile, argv)

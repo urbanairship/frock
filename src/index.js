@@ -10,6 +10,7 @@ import arrayify from 'arrify'
 import {sync as resolve} from 'resolve'
 import enableDestroy from 'server-destroy'
 import bole from 'bole'
+import evidence from 'evidence'
 import props from 'deep-property'
 
 import addUtilMiddleware from './utils'
@@ -18,11 +19,12 @@ export default createFrockInstance
 
 const log = bole('frock/index')
 
-function createFrockInstance (config = {}, {pwd}) {
+function createFrockInstance (_config = {}, {pwd}) {
   const frock = new EE()
   const handlers = new Map()
   const servers = []
   const dbs = new Map()
+  const configStore = evidence()
 
   let globalConstraints = {}
 
@@ -35,6 +37,8 @@ function createFrockInstance (config = {}, {pwd}) {
   frock.reload = reload
   frock.registerHandler = registerHandler
   frock.getOrCreateDb = getOrCreateDb
+
+  configStore.write(_config)
 
   return frock
 
@@ -66,7 +70,9 @@ function createFrockInstance (config = {}, {pwd}) {
   }
 
   function run (ready = noop) {
+    let config = configStore.get(0)
     let count = 0
+    let errors = []
 
     globalConstraints = {
       whitelist: props.get(config, 'connection.whitelist'),
@@ -100,11 +106,31 @@ function createFrockInstance (config = {}, {pwd}) {
       serverConfig.routes.forEach(route => {
         const methods = arrayify(route.methods).map(m => m.toLowerCase())
 
-        registerHandler(route.handler)
+        try {
+          registerHandler(route.handler)
+        } catch (e) {
+          errors.push(e)
+          log.error(`error registering handler ${route.handler}`, e)
+        }
 
         methods.forEach(method => {
           const logId = `${route.handler}:${serverConfig.port}>`
-          const handler = handlers.get(route.handler)(
+          const handlerFn = handlers.get(route.handler)
+
+          let handler
+
+          if (!handlerFn) {
+            let err = new Error(
+              `${method} handler requested ${route.handler}, which wasn't available.`
+            )
+
+            log.error(err)
+            errors.push(err)
+
+            return
+          }
+
+          handler = handlerFn(
             frock,
             bole(logId),
             route.options,
@@ -125,6 +151,11 @@ function createFrockInstance (config = {}, {pwd}) {
       })
 
       servers.push({server, handlers: boundHandlers, port: serverConfig.port})
+      server.on('error', function (e) {
+        if (e.code === 'EADDRINUSE') {
+          log(`port ${serverConfig.port} could not be bound, address in use`)
+        }
+      })
       server.listen(serverConfig.port, done)
       enableDestroy(server)
 
@@ -136,7 +167,7 @@ function createFrockInstance (config = {}, {pwd}) {
 
       if (count >= config.servers.length) {
         frock.emit('run')
-        ready()
+        ready(errors.length ? errors : null)
       }
     }
   }
@@ -156,27 +187,30 @@ function createFrockInstance (config = {}, {pwd}) {
 
   function reload (_config, ready = noop) {
     log.info('reloading')
-    if (_config) {
+
+    if (typeof _config === 'object') {
       log.debug('replacing config', _config)
-      config = _config
+      configStore.write(_config)
     }
 
     stop(true, () => {
-      run(() => {
+      run((err) => {
         frock.emit('reload')
-        ready()
+        ready(err)
       })
     })
   }
 
   function stop (hot = false, ready = noop) {
-    log.info('### shutting down ###')
     let serverCount = 0
+
+    log.info('shutting down')
 
     servers.forEach(server => {
       let handlerCount = 0
 
       log.debug(`${server.port}: removing ${server.handlers.length} handlers`)
+
       server.handlers.forEach((handler, index) => {
         log.debug(`ending handler ${index}`)
 
@@ -222,8 +256,11 @@ function createFrockInstance (config = {}, {pwd}) {
 }
 
 function defaultRoute (req, res) {
+  const msg = `no route configured for ${req.url}`
+
   res.statusCode = 404
-  res.end('not found')
+  res.end(msg)
+  log.info(msg)
 }
 
 function onWhitelistFail (req, res) {
