@@ -11,5 +11,6 @@ Options:
   --version               Print version and quit
 
 Commands:
-  reload      Reload the currently running frock
-  stop        Stop the currently running frock
+  reload [frockfile]      Reload the currently running frock, optionally with a
+                          frockfile, (default: use existing frockfile)
+  stop                    Stop the currently running frock
