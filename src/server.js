@@ -9,7 +9,7 @@ import addUtilMiddleware from './utils'
 
 export default startCommandServer
 
-const log = bole('frock/server')
+const log = bole('frock/command-server')
 
 function startCommandServer (frock, socket, ready) {
   const server = http.createServer(addUtilMiddleware(log, handleCommand))

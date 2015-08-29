@@ -164,20 +164,26 @@ function createFrockInstance (_config = {}, {pwd}) {
               handler
             )
           )
+
           boundHandlers.push(handler)
 
           log.debug(`added route [${method}:${route.handler}] ${route.path}`)
         })
       })
 
+      // remember our servers, start them
       servers.push({server, handlers: boundHandlers, port: serverConfig.port})
       server.on('error', function (e) {
         if (e.code === 'EADDRINUSE') {
           log(`port ${serverConfig.port} could not be bound, address in use`)
         }
       })
-      server.listen(serverConfig.port, done)
+      server.listen(serverConfig.port)
       enableDestroy(server)
+
+      // call done() no matter what; we handle the error case above, but need
+      // ensure we don't hang forever on a non-starting server
+      done()
 
       log.info(`started server ${serverConfig.port}`)
     })
