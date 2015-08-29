@@ -17,6 +17,8 @@ import addUtilMiddleware from './utils'
 
 export default createFrockInstance
 
+const DEFAULT_WHITELIST = ['127.0.0.1', '::1']
+
 const log = bole('frock/index')
 
 function createFrockInstance (_config = {}, {pwd}) {
@@ -74,6 +76,8 @@ function createFrockInstance (_config = {}, {pwd}) {
     let count = 0
     let errors = []
 
+    const httpServers = config.servers || []
+
     globalConstraints = {
       whitelist: props.get(config, 'connection.whitelist'),
       blacklist: props.get(config, 'connection.blacklist')
@@ -81,7 +85,7 @@ function createFrockInstance (_config = {}, {pwd}) {
 
     // default to localhost only connections if not specified
     if (!globalConstraints.whitelist && !globalConstraints.blacklist) {
-      globalConstraints.whitelist = ['127.0.0.1', '::1']
+      globalConstraints.whitelist = DEFAULT_WHITELIST
     }
 
     // configure db if requested
@@ -91,7 +95,7 @@ function createFrockInstance (_config = {}, {pwd}) {
       dbPath = path.resolve(pwd, config.db.path)
     }
 
-    config.servers.forEach(serverConfig => {
+    httpServers.forEach(serverConfig => {
       let constraints = serverConfig.connection || {}
 
       if (!constraints.whitelist && !constraints.blacklist) {
@@ -101,9 +105,25 @@ function createFrockInstance (_config = {}, {pwd}) {
       const deter = createDeter(constraints, onWhitelistFail)
       const router = commuter(defaultRoute, serverConfig.baseUrl)
       const server = http.createServer(deter(router))
+
+      const serverRoutes = serverConfig.routes || []
       const boundHandlers = []
 
-      serverConfig.routes.forEach(route => {
+      // handle validation cases
+      if (!serverRoutes.length) {
+        log.warn(`server ${serverConfig.port} has no routes`)
+      }
+
+      if (!serverConfig.port || !Number.isInteger(serverConfig.port)) {
+        log.error(
+          `no port defined for server, stopping setup early`,
+          serverConfig
+        )
+
+        return
+      }
+
+      serverRoutes.forEach(route => {
         const methods = arrayify(route.methods).map(m => m.toLowerCase())
 
         try {
@@ -165,7 +185,7 @@ function createFrockInstance (_config = {}, {pwd}) {
     function done () {
       ++count
 
-      if (count >= config.servers.length) {
+      if (count >= httpServers.length) {
         frock.emit('run')
         ready(errors.length ? errors : null)
       }
@@ -243,12 +263,12 @@ function createFrockInstance (_config = {}, {pwd}) {
           log.debug('servers stopped')
           servers.splice(0, servers.length)
 
+          ready()
+
           // if we're hot-reloading, we aren't actually stoping; don't emit
           if (!hot) {
             frock.emit('stop')
           }
-
-          ready()
         }
       }
     })

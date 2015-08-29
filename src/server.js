@@ -46,23 +46,23 @@ function startCommandServer (frock, socket, ready) {
 
         return
       } else if (command === 'stop') {
-        frock.stop(done)
+        frock.stop(false, done)
 
         return
       }
-    })
 
-    function done (err, result) {
-      if (err) {
-        log.debug('got error from command', err)
+      function done (err, result) {
+        if (err) {
+          log.debug('got error from command', err)
 
-        return res.e500(err)
+          return res.e500(err)
+        }
+
+        log.debug(`successfully executed command: ${command}`)
+
+        res.json(result)
       }
-
-      log.debug('successfully executed command', result)
-
-      res.json(result)
-    }
+    })
   }
 
   function stopServer () {
