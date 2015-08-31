@@ -109,7 +109,14 @@ function createFrockInstance (_config = {}, {pwd}) {
 
       const deter = createDeter(constraints, onWhitelistFail)
       const router = commuter(defaultRoute, serverConfig.baseUrl)
-      const server = http.createServer(deter(router))
+      const perServerMiddleware = processMiddleware(
+        frock,
+        bole('middleware:${serverConfig.port}>'),
+        serverConfig.options,
+        serverConfig.middlewares,
+        deter(router)
+      )
+      const server = http.createServer(perServerMiddleware)
 
       const serverRoutes = serverConfig.routes || []
       const boundHandlers = []
@@ -166,6 +173,8 @@ function createFrockInstance (_config = {}, {pwd}) {
           // save the path for plugins that need to know it
           route.options._path = route.path
           route.options._middleware = route.middleware
+          // flag to add util middleware
+          route.options._addUtil = true
 
           handler = handlerFn(
             frock,

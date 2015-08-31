@@ -15,7 +15,7 @@ function startCommandServer (frock, socket, ready) {
   const middlewareProcessor = processMiddleware(
     frock,
     bole('middleware: frock/command-server'),
-    {},
+    {_addUtil: true},
     [],
     handleCommand
   )

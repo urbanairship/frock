@@ -7,7 +7,7 @@ export {processMiddleware}
 
 const log = bole('frock/middleware')
 
-function processMiddleware (frock, logger, options, middlewares = [], route) {
+function processMiddleware (frock, logger, {_addUtil} = {}, middlewares = [], route) {
   const handlers = new Map()
 
   let toInit = middlewares.map(middleware => {
@@ -24,7 +24,9 @@ function processMiddleware (frock, logger, options, middlewares = [], route) {
     return handlers.get(middleware.handler)(frock, logger, middleware.options)
   })
 
-  toInit.unshift(utilMiddleware(frock, logger, {}))
+  if (_addUtil) {
+    toInit.unshift(utilMiddleware(frock, logger, {}))
+  }
 
   toInit = toInit.filter(Boolean)
 
