@@ -5,14 +5,21 @@ import bole from 'bole'
 import body from 'body/json'
 import enableDestroy from 'server-destroy'
 
-import addUtilMiddleware from './utils'
+import {processMiddleware} from './utils'
 
 export default startCommandServer
 
 const log = bole('frock/command-server')
 
 function startCommandServer (frock, socket, ready) {
-  const server = http.createServer(addUtilMiddleware(log, handleCommand))
+  const middlewareProcessor = processMiddleware(
+    frock,
+    bole('middleware: frock/command-server'),
+    {},
+    [],
+    handleCommand
+  )
+  const server = http.createServer(middlewareProcessor)
 
   server.listen(socket, () => {
     log.info(`running on ${socket}`)

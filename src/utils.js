@@ -1,80 +1,57 @@
-import url from 'url'
+import {sync as resolve} from 'resolve'
+import bole from 'bole'
 
-export default addUtilMiddleware
+import {utilMiddleware} from './middleware'
 
-function addUtilMiddleware (log, router) {
-  return processRequest
+export {processMiddleware}
 
-  function processRequest (req, res) {
-    logRequestStarted()
+const log = bole('frock/middleware')
 
-    const parsedUrl = url.parse(req.url, true)
+function processMiddleware (frock, logger, options, middlewares = [], route) {
+  const handlers = new Map()
 
-    req.GET = parsedUrl.query || {}
+  let toInit = middlewares.map(middleware => {
+    log.debug(`initializing middleware ${middleware.handler}`)
 
-    res.json = json
-    res.e404 = e404
-    res.e400 = e400
-    res.e500 = e500
-    res.error = error
+    try {
+      registerMiddleware(middleware.handler)
+    } catch (e) {
+      log.error(`Error registering middleware ${e.toString()}`, middleware)
 
-    res.on('finish', logRequestFinished)
+      return
+    }
 
-    router(req, res)
+    return handlers.get(middleware.handler)(frock, logger, middleware.options)
+  })
 
-    function json (raw, status = 200, {contentType = 'application/json'} = {}) {
-      let data
+  toInit.unshift(utilMiddleware(frock, logger, {}))
 
-      try {
-        data = JSON.stringify(raw)
-      } catch (e) {
-        data = e.toString()
-        status = 500
+  toInit = toInit.filter(Boolean)
+
+  return handleRequest
+
+  function handleRequest (req, res) {
+    mw(0, req, res)
+
+    function mw (idx, rq, rs) {
+      if (idx >= toInit.length) {
+        return route(req, res)
       }
 
-      res.setHeader('Content-Type', contentType)
+      toInit[idx](req, res, mw.bind(null, ++idx))
+    }
+  }
 
-      res.statusCode = status
-      res.end(data)
+  function registerMiddleware (name) {
+    if (handlers.has(name)) {
+      return
     }
 
-    function _exxx (data, status) {
-      if (typeof data === 'object') {
-        return json(data, status)
-      }
+    const handlerPath = resolve(name, {basedir: frock.pwd})
+    const handler = require(handlerPath)
 
-      if (data.toString) {
-        data = data.toString()
-      }
+    handlers.set(name, handler)
 
-      res.statusCode = status
-      res.end(data)
-    }
-
-    function e400 (data) {
-      _exxx(data, 400)
-    }
-
-    function e404 (data) {
-      _exxx(data, 404)
-    }
-
-    function e500 (data) {
-      _exxx(data, 500)
-    }
-
-    function error (e, status = 500) {
-      log.debug(e.stack)
-
-      _exxx(e, status)
-    }
-
-    function logRequestStarted () {
-      log.debug(`${req.method}[INCOMING] ${req.url}`)
-    }
-
-    function logRequestFinished () {
-      log.info(`${req.method}[${res.statusCode}] ${req.url}`)
-    }
+    log.debug(`registered middleware handler ${name}`)
   }
 }

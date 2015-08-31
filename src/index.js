@@ -13,7 +13,8 @@ import bole from 'bole'
 import evidence from 'evidence'
 import props from 'deep-property'
 
-import addUtilMiddleware from './utils'
+import {processMiddleware} from './utils'
+import pkg from '../package.json'
 
 export default createFrockInstance
 
@@ -34,9 +35,13 @@ function createFrockInstance (_config = {}, {pwd}) {
 
   frock.pwd = pwd
   frock.dbs = dbs
+  frock.version = pkg.version
+
   frock.run = run
   frock.stop = stop
   frock.reload = reload
+
+  frock.router = commuter
   frock.registerHandler = registerHandler
   frock.getOrCreateDb = getOrCreateDb
 
@@ -150,6 +155,18 @@ function createFrockInstance (_config = {}, {pwd}) {
             return
           }
 
+          if (!route.options) {
+            route.options = {}
+          }
+
+          if (!route.middleware) {
+            route.middleware = []
+          }
+
+          // save the path for plugins that need to know it
+          route.options._path = route.path
+          route.options._middleware = route.middleware
+
           handler = handlerFn(
             frock,
             bole(logId),
@@ -157,12 +174,17 @@ function createFrockInstance (_config = {}, {pwd}) {
             route.db ? getOrCreateDb(route.db) : null
           )
 
+          const middlewareProcessor = processMiddleware(
+            frock,
+            bole(logId),
+            route.options,
+            route.middleware,
+            handler
+          )
+
           router[method](
             route.path,
-            addUtilMiddleware(
-              bole(logId),
-              handler
-            )
+            middlewareProcessor
           )
 
           boundHandlers.push(handler)
