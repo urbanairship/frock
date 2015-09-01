@@ -1,13 +1,31 @@
 import url from 'url'
 
-export {utilMiddleware}
+export {utilMiddleware, logMiddleware}
+
+function logMiddleware (frock, log, options) {
+  return logRequest
+
+  function logRequest (req, res, next) {
+    logRequestStarted()
+
+    res.on('finish', logRequestFinished)
+
+    next(req, res)
+
+    function logRequestStarted () {
+      log.debug(`${req.method}[INCOMING] ${req.url}`)
+    }
+
+    function logRequestFinished () {
+      log.info(`${req.method}[${res.statusCode}] ${req.url}`)
+    }
+  }
+}
 
 function utilMiddleware (frock, log, options) {
   return processRequest
 
   function processRequest (req, res, next) {
-    logRequestStarted()
-
     const parsedUrl = url.parse(req.url, true)
 
     req.GET = parsedUrl.query || {}
@@ -17,8 +35,6 @@ function utilMiddleware (frock, log, options) {
     res.e400 = e400
     res.e500 = e500
     res.error = error
-
-    res.on('finish', logRequestFinished)
 
     next(req, res)
 
@@ -67,14 +83,6 @@ function utilMiddleware (frock, log, options) {
       log.debug(e.stack)
 
       _exxx(e, status)
-    }
-
-    function logRequestStarted () {
-      log.debug(`${req.method}[INCOMING] ${req.url}`)
-    }
-
-    function logRequestFinished () {
-      log.info(`${req.method}[${res.statusCode}] ${req.url}`)
     }
   }
 }

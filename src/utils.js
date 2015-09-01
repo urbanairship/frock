@@ -1,16 +1,19 @@
 import {sync as resolve} from 'resolve'
 import bole from 'bole'
 
-import {utilMiddleware} from './middleware'
-
 export {processMiddleware}
 
 const log = bole('frock/middleware')
 
-function processMiddleware (frock, logger, {_addUtil} = {}, middlewares = [], route) {
+function processMiddleware (frock, logger, options = {}, middlewares = [], route) {
   const handlers = new Map()
 
   let toInit = middlewares.map(middleware => {
+    if (typeof middleware.handler === 'function') {
+      log.debug(`initializing non-required middleware`)
+      return middleware.handler(frock, logger, middleware.options)
+    }
+
     log.debug(`initializing middleware ${middleware.handler}`)
 
     try {
@@ -23,10 +26,6 @@ function processMiddleware (frock, logger, {_addUtil} = {}, middlewares = [], ro
 
     return handlers.get(middleware.handler)(frock, logger, middleware.options)
   })
-
-  if (_addUtil) {
-    toInit.unshift(utilMiddleware(frock, logger, {}))
-  }
 
   toInit = toInit.filter(Boolean)
 

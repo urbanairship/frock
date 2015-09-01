@@ -14,6 +14,7 @@ import bole from 'bole'
 import evidence from 'evidence'
 import props from 'deep-property'
 
+import {utilMiddleware, logMiddleware} from './middleware'
 import {processMiddleware} from './utils'
 import pkg from '../package.json'
 
@@ -163,13 +164,19 @@ function createFrockInstance (_config = {}, {pwd}) {
         constraints = globalConstraints
       }
 
+      if (!serverConfig.middleware) {
+        serverConfig.middleware = []
+      }
+
+      serverConfig.middleware.unshift({handler: utilMiddleware})
+
       const deter = createDeter(constraints, onWhitelistFail)
       const router = commuter(defaultRoute, serverConfig.baseUrl)
       const perServerMiddleware = processMiddleware(
         frock,
         bole('middleware:${serverConfig.port}>'),
         serverConfig.options,
-        serverConfig.middlewares,
+        serverConfig.middleware,
         deter(router)
       )
       const server = http.createServer(perServerMiddleware)
@@ -225,6 +232,8 @@ function createFrockInstance (_config = {}, {pwd}) {
           if (!route.middleware) {
             route.middleware = []
           }
+
+          route.middleware.unshift({handler: logMiddleware})
 
           // save the path for plugins that need to know it
           route.options._path = route.path
