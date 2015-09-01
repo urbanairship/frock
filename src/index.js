@@ -1,4 +1,5 @@
 import http from 'http'
+import net from 'net'
 import path from 'path'
 import EE from 'events'
 
@@ -82,6 +83,7 @@ function createFrockInstance (_config = {}, {pwd}) {
     let errors = []
 
     const httpServers = config.servers || []
+    const socketServers = config.sockets || []
 
     globalConstraints = {
       whitelist: props.get(config, 'connection.whitelist'),
@@ -99,6 +101,60 @@ function createFrockInstance (_config = {}, {pwd}) {
       mkdirp.sync(path.resolve(pwd, config.db.path))
       dbPath = path.resolve(pwd, config.db.path)
     }
+
+    socketServers.forEach(socketConfig => {
+      let constraints = socketConfig.connection || {}
+      let handler
+      let server
+
+      if (!constraints.whitelist && !constraints.blacklist) {
+        constraints = globalConstraints
+      }
+
+      const deter = createDeter(constraints, onSocketWhitelistFail)
+
+      try {
+        registerHandler(socketConfig.handler)
+      } catch (e) {
+        errors.push(e)
+        log.error(`error registering socket handler ${socketConfig.handler}`, e)
+      }
+
+      const logId = `${socketConfig.handler}:${socketConfig.port}>`
+      const handlerFn = handlers.get(socketConfig.handler)
+
+      if (!socketConfig.options) {
+        socketConfig.options = {}
+      }
+
+      handler = handlerFn(
+        frock,
+        bole(logId),
+        socketConfig.options,
+        socketConfig.db ? getOrCreateDb(socketConfig.db) : null
+      )
+
+      server = net.createServer(socketConfig.port, deter(handler))
+
+      log.debug(`added socket [${socketConfig.handler}]`)
+
+      // remember our servers, start them
+      servers.push({server, handlers: [handler], port: socketConfig.port})
+      server.on('error', function (e) {
+        if (e.code === 'EADDRINUSE') {
+          log(`port ${socketConfig.port} could not be bound, address in use`)
+        }
+      })
+      server.listen(socketConfig.port)
+      enableDestroy(server)
+
+      // call done() no matter what; we handle the error case above, but need
+      // ensure we don't hang forever on a non-starting server
+      done()
+
+      log.info(`started socket server ${socketConfig.port}`)
+
+    })
 
     httpServers.forEach(serverConfig => {
       let constraints = serverConfig.connection || {}
@@ -222,7 +278,7 @@ function createFrockInstance (_config = {}, {pwd}) {
     function done () {
       ++count
 
-      if (count >= httpServers.length) {
+      if (count >= httpServers.length + socketServers.length) {
         frock.emit('run')
         ready(errors.length ? errors : null)
       }
@@ -326,6 +382,11 @@ function onWhitelistFail (req, res) {
   res.statusCode = 403
   res.end(msg)
   log.info(msg)
+}
+
+function onSocketWhitelistFail (client) {
+  client.end()
+  log.info('access socket from non-whitelisted, or from blacklisted address')
 }
 
 function noop () {

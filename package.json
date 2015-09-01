@@ -1,7 +1,7 @@
 {
   "name": "frock",
   "version": "0.0.0",
-  "description": "A configurable mock HTTP server",
+  "description": "An plugin-based HTTP and socket service mock.",
   "main": "lib/index.js",
   "bin": {
     "frock": "./bin/frock.js"
@@ -32,7 +32,7 @@
     "commuter": "^2.0.0",
     "concat-stream": "^1.5.0",
     "deep-property": "^1.1.0",
-    "deter": "^1.0.3",
+    "deter": "^1.0.4",
     "evidence": "^1.0.3",
     "fs-find-root": "^1.0.2",
     "garnish": "^2.3.0",

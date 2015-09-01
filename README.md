@@ -1,6 +1,6 @@
 # frock
 
-An plugin-based HTTP mock.
+An plugin-based HTTP and socket service mock.
 
 ## Example
 
@@ -68,6 +68,16 @@ In your working directory, create a `frockfile.json`:
           }
         }
       ]
+    }
+  ],
+  "sockets": [
+    {
+      "port": 8190,
+      "handler": "./mocks/socket-service",
+      "db": "socket-service",
+      "options": {
+        "responseType": 10
+      }
     }
   ]
 }
@@ -226,6 +236,8 @@ can use this to access other running mock's databases.
       need.
     - Don't modify the `frock` that you are passed; this is the global instance
       that is shared between all running mocks.
+- Socket mocks are far simpler than HTTP mocks, and haven't the full suite of
+  options that a HTTP mock has.
 - Don't crash :) Remember that all mocks run in the same process; you bring one
   down and you bring down the whole thing.
 
@@ -264,6 +276,7 @@ down the chain.
 
 ### Notes
 
+- Middleware is currently only availabl for HTTP mocks.
 - Middleware is always called in the order it's defined in your
   `frockfile.json`, and can be either a local path to a module, or a `npm`
   installed module, same as a `frock` plugin
