@@ -178,7 +178,7 @@ use in your plugins:
 - `.pwd` - The working directory (where the `frockfile.json` lives)
 - `.registerHandler(name)` Register a new handler; the `name` passed is both the
   name of the handler, and what will be passed to `require`, so this can be a
-  modulename to be resolved, or a path
+  modulename to be resolved, or a path (from `frock.pwd`)
 - `.version` The semver of the currently running frock
 
 ### Database
@@ -236,6 +236,13 @@ can use this to access other running mock's databases.
       need.
     - Don't modify the `frock` that you are passed; this is the global instance
       that is shared between all running mocks.
+- Use `frock.pwd` whenever you're resolving things; `frock` is mean to run using
+  the directory the `frockfile.json` lives in as the working directory; doing
+  something different will be unexpected for your users.
+- You should expect a `frock.version` and throw if you don't see something
+  compatible; frock respects [semver][semver] and won't make breaking changes
+  without bumping major versions, so you're save to trust a major-version for
+  your plugin's compatibility.
 - Socket mocks are far simpler than HTTP mocks, and haven't the full suite of
   options that a HTTP mock has.
 - Don't crash :) Remember that all mocks run in the same process; you bring one
@@ -276,7 +283,7 @@ down the chain.
 
 ### Notes
 
-- Middleware is currently only availabl for HTTP mocks.
+- Middleware is currently only available for HTTP mocks.
 - Middleware is always called in the order it's defined in your
   `frockfile.json`, and can be either a local path to a module, or a `npm`
   installed module, same as a `frock` plugin
@@ -315,3 +322,4 @@ Apache 2.0, see [LICENSE](./LICENSE) for details.
 [levelup]: https://github.com/Level/levelup
 [bole]: http://npm.im/bole
 [commuter]: http://npm.im/commuter
+[semver]: http://npm.im/semver

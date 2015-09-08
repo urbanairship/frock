@@ -53,7 +53,26 @@ function createHttpServer (frock, config, globalConfig, ready) {
     return ready(error)
   }
 
-  serverRoutes.forEach(route => {
+  serverRoutes.forEach(createRoute)
+
+  // start our servers
+  server.on('error', function (e) {
+    if (e.code === 'EADDRINUSE') {
+      log(`port ${config.port} could not be bound, address in use`)
+    }
+    // TODO handle other things
+  })
+  server.listen(config.port)
+  enableDestroy(server)
+
+  ready(
+    errors.length ? errors : null,
+    {server, handlers: boundHandlers, port: config.port}
+  )
+
+  log.info(`started server ${config.port}`)
+
+  function createRoute (route) {
     const methods = arrayify(route.methods).map(m => m.toLowerCase())
 
     try {
@@ -118,24 +137,7 @@ function createHttpServer (frock, config, globalConfig, ready) {
 
       log.debug(`added route [${method}:${route.handler}] ${route.path}`)
     })
-  })
-
-  // start our servers
-  server.on('error', function (e) {
-    if (e.code === 'EADDRINUSE') {
-      log(`port ${config.port} could not be bound, address in use`)
-    }
-    // TODO handle other things
-  })
-  server.listen(config.port)
-  enableDestroy(server)
-
-  ready(
-    errors.length ? errors : null,
-    {server, handlers: boundHandlers, port: config.port}
-  )
-
-  log.info(`started server ${config.port}`)
+  }
 }
 
 function defaultRoute (req, res) {
