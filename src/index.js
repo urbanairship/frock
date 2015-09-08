@@ -1,21 +1,16 @@
-import http from 'http'
-import net from 'net'
 import path from 'path'
 import EE from 'events'
 
 import commuter from 'commuter'
-import createDeter from 'deter'
 import level from 'level'
 import mkdirp from 'mkdirp'
 import arrayify from 'arrify'
 import {sync as resolve} from 'resolve'
-import enableDestroy from 'server-destroy'
 import bole from 'bole'
 import evidence from 'evidence'
-import props from 'deep-property'
 
-import {utilMiddleware, logMiddleware} from './middleware'
-import {processMiddleware} from './utils'
+import createSocketServer from './core-socketserver'
+import createHttpServer from './core-httpserver'
 import pkg from '../package.json'
 
 export default createFrockInstance
@@ -31,8 +26,6 @@ function createFrockInstance (_config = {}, {pwd}) {
   const dbs = new Map()
   const configStore = evidence()
 
-  let globalConstraints = {}
-
   let dbPath
 
   frock.pwd = pwd
@@ -43,13 +36,29 @@ function createFrockInstance (_config = {}, {pwd}) {
   frock.stop = stop
   frock.reload = reload
 
+  frock.handlers = handlers
   frock.router = commuter
   frock.registerHandler = registerHandler
   frock.getOrCreateDb = getOrCreateDb
 
-  configStore.write(_config)
+  writeConfig(_config)
 
   return frock
+
+  function writeConfig (cfg) {
+    if (!cfg.connection) {
+      cfg.connection = {}
+    }
+
+    const {whitelist, blacklist} = cfg.connection
+
+    // default to localhost only connections if not specified
+    if (!whitelist && !blacklist) {
+      cfg.connection.whitelist = DEFAULT_WHITELIST
+    }
+
+    configStore.write(cfg)
+  }
 
   function getOrCreateDb (_name) {
     if (!dbPath) {
@@ -86,16 +95,6 @@ function createFrockInstance (_config = {}, {pwd}) {
     const httpServers = config.servers || []
     const socketServers = config.sockets || []
 
-    globalConstraints = {
-      whitelist: props.get(config, 'connection.whitelist'),
-      blacklist: props.get(config, 'connection.blacklist')
-    }
-
-    // default to localhost only connections if not specified
-    if (!globalConstraints.whitelist && !globalConstraints.blacklist) {
-      globalConstraints.whitelist = DEFAULT_WHITELIST
-    }
-
     // configure db if requested
     if (config.db) {
       // make our db directory, ok to throw
@@ -104,188 +103,21 @@ function createFrockInstance (_config = {}, {pwd}) {
     }
 
     socketServers.forEach(socketConfig => {
-      let constraints = socketConfig.connection || {}
-      let handler
-      let server
-
-      if (!constraints.whitelist && !constraints.blacklist) {
-        constraints = globalConstraints
-      }
-
-      const deter = createDeter(constraints, onSocketWhitelistFail)
-
-      try {
-        registerHandler(socketConfig.handler)
-      } catch (e) {
-        errors.push(e)
-        log.error(`error registering socket handler ${socketConfig.handler}`, e)
-      }
-
-      const logId = `${socketConfig.handler}:${socketConfig.port}>`
-      const handlerFn = handlers.get(socketConfig.handler)
-
-      if (!socketConfig.options) {
-        socketConfig.options = {}
-      }
-
-      handler = handlerFn(
-        frock,
-        bole(logId),
-        socketConfig.options,
-        socketConfig.db ? getOrCreateDb(socketConfig.db) : null
-      )
-
-      server = net.createServer(socketConfig.port, deter(handler))
-
-      log.debug(`added socket [${socketConfig.handler}]`)
-
-      // remember our servers, start them
-      servers.push({server, handlers: [handler], port: socketConfig.port})
-      server.on('error', function (e) {
-        if (e.code === 'EADDRINUSE') {
-          log(`port ${socketConfig.port} could not be bound, address in use`)
-        }
-      })
-      server.listen(socketConfig.port)
-      enableDestroy(server)
-
-      // call done() no matter what; we handle the error case above, but need
-      // ensure we don't hang forever on a non-starting server
-      done()
-
-      log.info(`started socket server ${socketConfig.port}`)
-
+      createSocketServer(frock, socketConfig, config, done)
     })
 
     httpServers.forEach(serverConfig => {
-      let constraints = serverConfig.connection || {}
-
-      if (!constraints.whitelist && !constraints.blacklist) {
-        constraints = globalConstraints
-      }
-
-      if (!serverConfig.middleware) {
-        serverConfig.middleware = []
-      }
-
-      serverConfig.middleware.unshift({handler: utilMiddleware})
-
-      const deter = createDeter(constraints, onWhitelistFail)
-      const router = commuter(defaultRoute, serverConfig.baseUrl)
-      const perServerMiddleware = processMiddleware(
-        frock,
-        bole('middleware:${serverConfig.port}>'),
-        serverConfig.options,
-        serverConfig.middleware,
-        deter(router)
-      )
-      const server = http.createServer(perServerMiddleware)
-
-      const serverRoutes = serverConfig.routes || []
-      const boundHandlers = []
-
-      // handle validation cases
-      if (!serverRoutes.length) {
-        log.warn(`server ${serverConfig.port} has no routes`)
-      }
-
-      if (!serverConfig.port || !Number.isInteger(serverConfig.port)) {
-        log.error(
-          `no port defined for server, stopping setup early`,
-          serverConfig
-        )
-
-        return
-      }
-
-      serverRoutes.forEach(route => {
-        const methods = arrayify(route.methods).map(m => m.toLowerCase())
-
-        try {
-          registerHandler(route.handler)
-        } catch (e) {
-          errors.push(e)
-          log.error(`error registering handler ${route.handler}`, e)
-        }
-
-        methods.forEach(method => {
-          const logId = `${route.handler}:${serverConfig.port}>`
-          const handlerFn = handlers.get(route.handler)
-
-          let handler
-
-          if (!handlerFn) {
-            let err = new Error(
-              `${method} handler requested ${route.handler}, which wasn't available.`
-            )
-
-            log.error(err)
-            errors.push(err)
-
-            return
-          }
-
-          if (!route.options) {
-            route.options = {}
-          }
-
-          if (!route.middleware) {
-            route.middleware = []
-          }
-
-          route.middleware.unshift({handler: logMiddleware})
-
-          // save the path for plugins that need to know it
-          route.options._path = route.path
-          route.options._middleware = route.middleware
-          // flag to add util middleware
-          route.options._addUtil = true
-
-          handler = handlerFn(
-            frock,
-            bole(logId),
-            route.options,
-            route.db ? getOrCreateDb(route.db) : null
-          )
-
-          const middlewareProcessor = processMiddleware(
-            frock,
-            bole(logId),
-            route.options,
-            route.middleware,
-            handler
-          )
-
-          router[method](
-            route.path,
-            middlewareProcessor
-          )
-
-          boundHandlers.push(handler)
-
-          log.debug(`added route [${method}:${route.handler}] ${route.path}`)
-        })
-      })
-
-      // remember our servers, start them
-      servers.push({server, handlers: boundHandlers, port: serverConfig.port})
-      server.on('error', function (e) {
-        if (e.code === 'EADDRINUSE') {
-          log(`port ${serverConfig.port} could not be bound, address in use`)
-        }
-      })
-      server.listen(serverConfig.port)
-      enableDestroy(server)
-
-      // call done() no matter what; we handle the error case above, but need
-      // ensure we don't hang forever on a non-starting server
-      done()
-
-      log.info(`started server ${serverConfig.port}`)
+      createHttpServer(frock, serverConfig, config, done)
     })
 
-    function done () {
+    function done (errs, server) {
       ++count
+
+      if (errs) {
+        errors.push.apply(errors, arrayify(errs))
+      } else if (server) {
+        servers.push(server)
+      }
 
       if (count >= httpServers.length + socketServers.length) {
         frock.emit('run')
@@ -312,7 +144,7 @@ function createFrockInstance (_config = {}, {pwd}) {
 
     if (typeof _config === 'object') {
       log.debug('replacing config', _config)
-      configStore.write(_config)
+      writeConfig(_config)
     }
 
     stop(true, () => {
@@ -355,47 +187,24 @@ function createFrockInstance (_config = {}, {pwd}) {
           }
         }
       })
+    })
 
-      function done () {
-        ++serverCount
+    function done () {
+      ++serverCount
 
-        log.debug(`server closed ${server.port}`)
+      if (serverCount >= servers.length) {
+        log.debug('servers stopped')
+        servers.splice(0, servers.length)
 
-        if (serverCount >= servers.length) {
-          log.debug('servers stopped')
-          servers.splice(0, servers.length)
+        ready()
 
-          ready()
-
-          // if we're hot-reloading, we aren't actually stoping; don't emit
-          if (!hot) {
-            frock.emit('stop')
-          }
+        // if we're hot-reloading, we aren't actually stoping; don't emit
+        if (!hot) {
+          frock.emit('stop')
         }
       }
-    })
+    }
   }
-}
-
-function defaultRoute (req, res) {
-  const msg = `no route configured for ${req.url}`
-
-  res.statusCode = 404
-  res.end(msg)
-  log.info(msg)
-}
-
-function onWhitelistFail (req, res) {
-  const msg = 'access from non-whitelisted, or from blacklisted address'
-
-  res.statusCode = 403
-  res.end(msg)
-  log.info(msg)
-}
-
-function onSocketWhitelistFail (client) {
-  client.end()
-  log.info('access socket from non-whitelisted, or from blacklisted address')
 }
 
 function noop () {
