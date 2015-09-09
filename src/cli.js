@@ -36,7 +36,7 @@ function processCli (args, ready) {
   })
 
   if (argv.version || argv.help) {
-    return ready(null, {version: argv.version, help: argv.help})
+    return ready(null, argv)
   }
 
   let file = argv._[0]

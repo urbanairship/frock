@@ -1,32 +1,26 @@
-import path from 'path'
 import EE from 'events'
 
 import commuter from 'commuter'
-import level from 'level'
-import mkdirp from 'mkdirp'
 import arrayify from 'arrify'
-import {sync as resolve} from 'resolve'
 import bole from 'bole'
-import evidence from 'evidence'
 
 import createSocketServer from './core-socketserver'
 import createHttpServer from './core-httpserver'
+import createHandlerRegister from './register-handler'
+import createDbRegister from './register-db'
+import createConfigRegister from './register-config'
 import pkg from '../package.json'
 
 export default createFrockInstance
-
-const DEFAULT_WHITELIST = ['127.0.0.1', '::1']
 
 const log = bole('frock/index')
 
 function createFrockInstance (_config = {}, {pwd}) {
   const frock = new EE()
-  const handlers = new Map()
+  const handlers = createHandlerRegister(pwd)
   const servers = []
-  const dbs = new Map()
-  const configStore = evidence()
-
-  let dbPath
+  const dbs = createDbRegister(pwd)
+  const configs = createConfigRegister()
 
   frock.pwd = pwd
   frock.dbs = dbs
@@ -38,57 +32,13 @@ function createFrockInstance (_config = {}, {pwd}) {
 
   frock.handlers = handlers
   frock.router = commuter
-  frock.registerHandler = registerHandler
-  frock.getOrCreateDb = getOrCreateDb
 
-  writeConfig(_config)
+  configs.register(_config)
 
   return frock
 
-  function writeConfig (cfg) {
-    if (!cfg.connection) {
-      cfg.connection = {}
-    }
-
-    const {whitelist, blacklist} = cfg.connection
-
-    // default to localhost only connections if not specified
-    if (!whitelist && !blacklist) {
-      cfg.connection.whitelist = DEFAULT_WHITELIST
-    }
-
-    configStore.write(cfg)
-  }
-
-  function getOrCreateDb (_name) {
-    if (!dbPath) {
-      throw new Error(
-        `A handler requested a database, but a database path wasn't specified.`
-      )
-    }
-
-    const names = arrayify(_name)
-
-    const retrieved = names.map(name => {
-      if (dbs.has(name)) {
-        return dbs.get(name)
-      }
-
-      const db = level(
-        path.resolve(dbPath, name),
-        {valueEncoding: 'json'}
-      )
-
-      dbs.set(name, db)
-
-      return db
-    })
-
-    return retrieved.length > 1 ? retrieved : retrieved[0]
-  }
-
   function run (ready = noop) {
-    let config = configStore.get(0)
+    let config = configs.get(0)
     let count = 0
     let errors = []
 
@@ -97,9 +47,7 @@ function createFrockInstance (_config = {}, {pwd}) {
 
     // configure db if requested
     if (config.db) {
-      // make our db directory, ok to throw
-      mkdirp.sync(path.resolve(pwd, config.db.path))
-      dbPath = path.resolve(pwd, config.db.path)
+      dbs._updatePath(config.db.path)
     }
 
     socketServers.forEach(socketConfig => {
@@ -126,25 +74,15 @@ function createFrockInstance (_config = {}, {pwd}) {
     }
   }
 
-  function registerHandler (name) {
-    if (handlers.has(name)) {
-      return
-    }
-
-    const handlerPath = resolve(name, {basedir: pwd})
-    const handler = require(handlerPath)
-
-    handlers.set(name, handler)
-
-    log.debug(`registered handler ${name}`)
-  }
-
   function reload (_config, ready = noop) {
     log.info('reloading')
 
-    if (typeof _config === 'object') {
+    if (_config && typeof _config === 'object') {
       log.debug('replacing config', _config)
-      writeConfig(_config)
+      configs.register(_config)
+    } else if (_config && typeof _config === 'function') {
+      // support passing ready as the first param
+      ready = _config
     }
 
     stop(true, () => {
@@ -156,6 +94,12 @@ function createFrockInstance (_config = {}, {pwd}) {
   }
 
   function stop (hot = false, ready = noop) {
+    // support passing ready as the first param
+    if (typeof hot === 'function') {
+      ready = hot
+      hot = false
+    }
+
     let serverCount = 0
 
     log.info('shutting down')

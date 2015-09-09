@@ -76,7 +76,7 @@ function createHttpServer (frock, config, globalConfig, ready) {
     const methods = arrayify(route.methods).map(m => m.toLowerCase())
 
     try {
-      frock.registerHandler(route.handler)
+      frock.handlers.register(route.handler)
     } catch (e) {
       errors.push(e)
       log.error(`error registering handler ${route.handler}`, e)
@@ -117,7 +117,7 @@ function createHttpServer (frock, config, globalConfig, ready) {
         frock,
         bole(logId),
         route.options,
-        route.db ? frock.getOrCreateDb(route.db) : null
+        route.db ? frock.dbs.register(route.db) : null
       )
 
       const middlewareProcessor = processMiddleware(
@@ -139,6 +139,10 @@ function createHttpServer (frock, config, globalConfig, ready) {
     })
   }
 }
+
+// testing exports
+createHttpServer._defaultRoute = defaultRoute
+createHttpServer._onWhitelistFail = onWhitelistFail
 
 function defaultRoute (req, res) {
   const msg = `no route configured for ${req.url}`

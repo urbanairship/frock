@@ -176,12 +176,24 @@ use in your plugins:
 - `.router` A router factory, which returns a new router instance. Internally
   `frock` uses [`commuter`][commuter] as its router, and there are benefits to
   you doing the same (see the section on tips for writing plugins)
-- `.getOrCreateDb(name)` Get or create a new database with `name`
+- `.dbs` A `Map` containing the key/value databases as `name/levelDb`; with some
+  additional methods for registering databases; this is an alternate allowed
+  from within your plugin, rather than using the `db` config parameter which
+  automatically creates a database for you:
+    - `.dbs.register(name)` Given a string `name` create or get a database with
+      that name
 - `.pwd` - The working directory (where the `frockfile.json` lives)
 - `.registerHandler(name)` Register a new handler; the `name` passed is both the
   name of the handler, and what will be passed to `require`, so this can be a
   modulename to be resolved, or a path (from `frock.pwd`)
-- `.version` The semver of the currently running frock
+- `.handlers` A `Map` containing the key/value handlers as
+  `name/handlerFunction`; also has an additional method not typically found on a
+  `Map`:
+    - `.handlers.register(name)` Given a requirable string/path `name` this will
+      require and save a handler; anything you pass as `name` will be resolved
+      using node's `require` resolution process, required, and saved to the
+      `Map`
+- `.version` The [semver][semver] of the currently running frock
 
 ### Database
 
@@ -215,7 +227,7 @@ When you use this config, a [level][levelup] instance called "some-db" will be
 created in your `db.path` folder that was specified, and it'll be passed as the
 last parameter to the `frock` plugin's factory function.
 
-You can also call any frock instance's `getOrCreateDb(name)` to get the DB; you
+You can also call any frock instance's `dbs.register(name)` to get the DB; you
 can use this to access other running mock's databases.
 
 ### Tips for writing Plugins

@@ -20,7 +20,7 @@ function createSocketServer (frock, config, globalConfig, ready) {
   const deter = createDeter(constraints, onSocketWhitelistFail)
 
   try {
-    frock.registerHandler(config.handler)
+    frock.handlers.register(config.handler)
   } catch (e) {
     log.error(`error registering socket handler ${config.handler}`, e)
 
@@ -38,7 +38,7 @@ function createSocketServer (frock, config, globalConfig, ready) {
     frock,
     bole(logId),
     config.options,
-    config.db ? frock.getOrCreateDb(config.db) : null
+    config.db ? frock.dbs.register(config.db) : null
   )
 
   server = net.createServer(config.port, deter(handler))
@@ -58,6 +58,9 @@ function createSocketServer (frock, config, globalConfig, ready) {
 
   log.info(`started server ${config.port}`)
 }
+
+// testing exports
+createSocketServer._onSocketWhitelistFail = onSocketWhitelistFail
 
 function onSocketWhitelistFail (client) {
   client.end()

@@ -1,14 +1,15 @@
-import {sync as resolve} from 'resolve'
 import bole from 'bole'
 
-export {processMiddleware}
+import createHandlerRegister from './register-handler'
+
+export {processMiddleware, noopMiddleware}
 
 const log = bole('frock/middleware')
 
 function processMiddleware (frock, logger, options = {}, middlewares = [], route) {
-  const handlers = new Map()
+  const handlers = createHandlerRegister(frock.pwd)
 
-  let toInit = middlewares.map(middleware => {
+  let middlewareStack = middlewares.map(middleware => {
     if (typeof middleware.handler === 'function') {
       log.debug(`initializing non-required middleware`)
       return middleware.handler(frock, logger, middleware.options)
@@ -16,18 +17,18 @@ function processMiddleware (frock, logger, options = {}, middlewares = [], route
 
     log.debug(`initializing middleware ${middleware.handler}`)
 
+    let handler
+
     try {
-      registerMiddleware(middleware.handler)
+      handler = handlers.register(middleware.handler)
     } catch (e) {
       log.error(`Error registering middleware ${e.toString()}`, middleware)
 
-      return
+      return noopMiddleware(middleware.handler)
     }
 
-    return handlers.get(middleware.handler)(frock, logger, middleware.options)
+    return handler(frock, logger, middleware.options)
   })
-
-  toInit = toInit.filter(Boolean)
 
   return handleRequest
 
@@ -35,24 +36,21 @@ function processMiddleware (frock, logger, options = {}, middlewares = [], route
     mw(0, req, res)
 
     function mw (idx, rq, rs) {
-      if (idx >= toInit.length) {
+      if (idx >= middlewareStack.length) {
         return route(req, res)
       }
 
-      toInit[idx](req, res, mw.bind(null, ++idx))
+      middlewareStack[idx](req, res, mw.bind(null, ++idx))
     }
   }
+}
 
-  function registerMiddleware (name) {
-    if (handlers.has(name)) {
-      return
-    }
+function noopMiddleware (missingName) {
+  return handler
 
-    const handlerPath = resolve(name, {basedir: frock.pwd})
-    const handler = require(handlerPath)
+  function handler (req, res, next) {
+    log.error(`no-op middleware: ${missingName} was not found`)
 
-    handlers.set(name, handler)
-
-    log.debug(`registered middleware handler ${name}`)
+    next(req, res)
   }
 }
