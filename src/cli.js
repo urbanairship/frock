@@ -1,26 +1,19 @@
 import fs from 'fs'
 import path from 'path'
 
-import tmpDir from 'os-tmpdir'
 import minimist from 'minimist'
 import find from 'fs-find-root'
 import bole from 'bole'
 import garnish from 'garnish'
 
 import createFrockInstance from './'
-import startCommandServer from './server'
-import connectCommandClient from './client'
 import createWatcher from './watcher'
 
 export default processCli
 
-const DEFAULT_SOCKET_NAME = 'frock.sock'
-
 function processCli (args, ready) {
   const options = {
     alias: {
-      command: 'c',
-      socket: 's',
       nowatch: 'w',
       debug: 'd',
       raw: 'r'
@@ -47,13 +40,6 @@ function processCli (args, ready) {
   }
 
   let file = argv._[0]
-  let socket = argv.socket ? path.resolve(socket) : null
-
-  // if we were given a command and a socket, no need to read the frockfile
-  // unless specified explicitly
-  if (argv.command && socket && !argv._[0]) {
-    return connectCommandClient(socket, argv, null, ready)
-  }
 
   // if we weren't given a frockfile path, find one
   if (!file) {
@@ -88,25 +74,15 @@ function processCli (args, ready) {
       throw new Error(`Error parsing frockfile: ${e}`)
     }
 
-    if (!socket) {
-      socket = path.join(tmpDir(), frockfile.socketName || DEFAULT_SOCKET_NAME)
-    }
-
-    if (argv.command) {
-      return connectCommandClient(socket, argv, frockfile, ready)
-    }
-
     const frock = createFrockInstance(frockfile, argv)
 
-    // start command server, then run the frock after it's up
-    startCommandServer(frock, socket, () => {
-      frock.run(() => {
-        if (!argv.nowatch) {
-          createWatcher(frock, file)
-        }
+    // run frock, create the watcher if requested
+    frock.run(() => {
+      if (!argv.nowatch) {
+        createWatcher(frock, file)
+      }
 
-        ready(null, {argv, frock, frockfile, launched: true})
-      })
+      ready(null, {argv, frock, frockfile, launched: true})
     })
   }
 }
