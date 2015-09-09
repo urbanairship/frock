@@ -4,13 +4,8 @@ frockfile   The JSON configuration file; will search upward for `frockfile.json`
             from the `pwd` if one is not provided, failing if not found.
 
 Options:
-  -c --command <cmd>      Send a command to an already running frock
-  -s --socket <path>      Specify a socket on which to find the running frock
-  -w --nowatch            Don't watch the frockfile for changes
-  --help                  Show this message
-  --version               Print version and quit
-
-Commands:
-  reload [frockfile]      Reload the currently running frock, optionally with a
-                          frockfile, (default: use existing frockfile)
-  stop                    Stop the currently running frock
+  -w --nowatch       Don't watch the frockfile for changes
+  -d --debug         Enable verbose (debug) logging
+  -r --raw           Don't process the output, instead outputting ndjson logs
+  --help             Show this message
+  --version          Print version and quit

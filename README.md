@@ -97,12 +97,14 @@ $ frock
 
 ## CLI
 
-The when frock is run, it creates a foreground process that logs at whatever
-logging level you have set (`info` by default). However, you can control a
-running `frock` from your CLI:
+The `frock` command will search upward from your current directory for a
+`frockfile.json`, and run it; it will also start up a watcher on that file and
+hot-reload on any changes made to it.
+
+Use the built-in help to learn about other options:
 
 ```shell
-$ frock -c reload  # stops and restarts all the currently running mocks
+$ frock --help
 ```
 
 ## API
