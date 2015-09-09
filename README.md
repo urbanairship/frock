@@ -293,8 +293,8 @@ down the chain.
 
 ## Response Convenience Functions
 
-Each request that passes through `frock` has some convenience functions added
-that'll be available before it hits your plugin or middleware:
+Each http request that passes through `frock` has some convenience functions
+added that'll be available before it hits your plugin or middleware:
 
 - `req.GET` an object containing all `GET` parameters that were in the requests
   URL
