@@ -1,4 +1,4 @@
-import EE from 'events'
+import {EventEmitter} from 'events'
 
 import commuter from 'commuter'
 import arrayify from 'arrify'
@@ -16,7 +16,7 @@ export default createFrockInstance
 const log = bole('frock/index')
 
 function createFrockInstance (_config = {}, {pwd}) {
-  const frock = new EE()
+  const frock = new EventEmitter()
   const handlers = createHandlerRegister(pwd)
   const servers = []
   const dbs = createDbRegister(pwd)
