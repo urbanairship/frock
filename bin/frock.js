@@ -2,6 +2,7 @@
 var fs = require('fs')
 var path = require('path')
 
+var lib = require('../lib')
 var cli = require('../lib/cli')
 
 module.exports = processCli
@@ -32,3 +33,5 @@ function processCli (_prc) {
     }
   })
 }
+
+processCli.lib = lib

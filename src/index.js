@@ -1,3 +1,5 @@
+import 'core-js/shim'
+
 import {EventEmitter} from 'events'
 
 import commuter from 'commuter'
