@@ -2,7 +2,7 @@ import bole from 'bole'
 
 import createHandlerRegister from './register-handler'
 
-export {processMiddleware, noopMiddleware}
+export {processMiddleware, noopMiddleware, handleServerError}
 
 const log = bole('frock/middleware')
 
@@ -58,5 +58,22 @@ function noopMiddleware (missingName) {
     log.error(`no-op middleware: ${missingName} was not found`)
 
     next(req, res)
+  }
+}
+
+function handleServerError (logger, config) {
+  return onError
+
+  function onError (err) {
+    if (err.code === 'EADDRINUSE') {
+      logger.error(`port ${config.port} could not be bound, address in use`)
+
+      return
+    }
+
+    logger.error(
+      `server running on ${config.port} encountered an error: ${err}--` +
+      `it's recommended that you restart frock`
+    )
   }
 }

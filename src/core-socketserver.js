@@ -4,6 +4,8 @@ import bole from 'bole'
 import createDeter from 'deter'
 import enableDestroy from 'server-destroy'
 
+import {handleServerError} from './utils'
+
 export default createSocketServer
 
 const log = bole('frock/core-socketsever')
@@ -45,12 +47,7 @@ function createSocketServer (frock, config, globalConfig, ready) {
 
   log.debug(`added socket [${config.handler}]`)
 
-  server.on('error', function (e) {
-    if (e.code === 'EADDRINUSE') {
-      log.error(`port ${config.port} could not be bound, address in use`)
-    }
-    // TODO handle other things
-  })
+  server.on('error', handleServerError(log, config))
   server.listen(config.port)
   enableDestroy(server)
 

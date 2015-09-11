@@ -6,7 +6,7 @@ import createDeter from 'deter'
 import enableDestroy from 'server-destroy'
 
 import {utilMiddleware, logMiddleware} from './middleware'
-import {processMiddleware} from './utils'
+import {processMiddleware, handleServerError} from './utils'
 
 export default createHttpServer
 
@@ -57,12 +57,7 @@ function createHttpServer (frock, config, globalConfig, ready) {
   serverRoutes.forEach(createRoute)
 
   // start our servers
-  server.on('error', function (e) {
-    if (e.code === 'EADDRINUSE') {
-      log(`port ${config.port} could not be bound, address in use`)
-    }
-    // TODO handle other things
-  })
+  server.on('error', handleServerError(log, config))
   server.listen(config.port)
   enableDestroy(server)
 
