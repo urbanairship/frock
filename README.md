@@ -209,6 +209,15 @@ register new dependencies:
 - `.pwd` - The working directory (where the `frockfile.json` lives)
 - `.version` The [semver][semver] of the currently running frock
 
+##### Events
+
+- `run`: emits when the `frock` instance is running, after all services have
+  been started
+- `reload`: emits after the `frock` instance has successfully shut down all
+  services and restarted them
+- `stop`: emits just before the `frock` instance shuts down (and the process
+  exits)
+
 ### Database
 
 If you create a `db` in your frockfile, you can request a db to be passed to any
