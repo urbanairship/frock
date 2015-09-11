@@ -54,7 +54,7 @@ function createSocketServer (frock, config, globalConfig, ready) {
   server.listen(config.port)
   enableDestroy(server)
 
-  ready(null, {server, handlers: [handler], port: config.port})
+  ready(null, {server, handlers: [handler], middlewares: [], port: config.port})
 
   log.info(`started server ${config.port}`)
 }

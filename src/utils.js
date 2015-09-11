@@ -30,6 +30,8 @@ function processMiddleware (frock, logger, options = {}, middlewares = [], route
     return handler(frock, logger, middleware.options)
   })
 
+  handleRequest.end = end
+
   return handleRequest
 
   function handleRequest (req, res) {
@@ -42,6 +44,10 @@ function processMiddleware (frock, logger, options = {}, middlewares = [], route
 
       middlewareStack[idx](req, res, mw.bind(null, ++idx))
     }
+  }
+
+  function end () {
+    handlers.destroy()
   }
 }
 

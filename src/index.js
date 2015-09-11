@@ -129,6 +129,8 @@ function createFrockInstance (_config = {}, {pwd}) {
           if (handlerCount >= server.handlers.length) {
             log.debug(`no handlers remain, closing server ${server.port}`)
             server.handlers.splice(0, server.handlers.length)
+            server.middlewares.forEach(middleware => middleware.end())
+            server.middlewares.splice(0, server.middlewares.length)
             server.server.destroy(done)
           }
         }

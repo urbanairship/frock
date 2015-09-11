@@ -39,6 +39,7 @@ function createHttpServer (frock, config, globalConfig, ready) {
   const serverRoutes = config.routes || []
   const boundHandlers = []
   const errors = []
+  const boundMiddlewares = [perServerMiddleware]
 
   // handle validation cases
   if (!serverRoutes.length) {
@@ -67,7 +68,12 @@ function createHttpServer (frock, config, globalConfig, ready) {
 
   ready(
     errors.length ? errors : null,
-    {server, handlers: boundHandlers, port: config.port}
+    {
+      server,
+      handlers: boundHandlers,
+      middlewares: boundMiddlewares,
+      port: config.port
+    }
   )
 
   log.info(`started server ${config.port}`)
@@ -134,6 +140,7 @@ function createHttpServer (frock, config, globalConfig, ready) {
       )
 
       boundHandlers.push(handler)
+      boundMiddlewares.push(middlewareProcessor)
 
       log.debug(`added route [${method}:${route.handler}] ${route.path}`)
     })
