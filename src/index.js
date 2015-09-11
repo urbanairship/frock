@@ -6,6 +6,7 @@ import commuter from 'commuter'
 import arrayify from 'arrify'
 import bole from 'bole'
 
+import createCores from './cores'
 import createSocketServer from './core-socketserver'
 import createHttpServer from './core-httpserver'
 import createHandlerRegister from './register-handler'
@@ -24,15 +25,19 @@ function createFrockInstance (_config = {}, {pwd}) {
   const dbs = createDbRegister(pwd)
   const configs = createConfigRegister()
 
+  let firstRun = true
+
   frock.pwd = pwd
-  frock.dbs = dbs
   frock.version = pkg.version
 
   frock.run = run
   frock.stop = stop
   frock.reload = reload
 
+  frock.dbs = dbs
   frock.handlers = handlers
+
+  frock.logger = bole
   frock.router = commuter
 
   configs.register(_config)
@@ -46,6 +51,13 @@ function createFrockInstance (_config = {}, {pwd}) {
 
     const httpServers = config.servers || []
     const socketServers = config.sockets || []
+
+    // perform first-run only tasks
+    if (firstRun) {
+      firstRun = false
+
+      createCores(frock)
+    }
 
     // configure db if requested
     if (config.db) {

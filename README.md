@@ -111,28 +111,10 @@ $ frock --help
 
 ### `frock(config) -> instance`
 
-Instantiates a new frock. Config is as defined above, and isn't exactly locked
-in yet.
+Instantiates a new frock. Config is as defined above. The instance has a number
+of properties and methods attached, see the section on the
+[frock singleton](#frock-singleton) for more information.
 
-#### `instance.run([ready])`
-
-Starts the mocks.
-
-- `ready` (function) optional callback to execute after all servers are started
-
-#### `instance.reload([config] [, ready])`
-
-Stop and restart all servers, optionally loading a new config.
-
-- `config` (object) an optional new config to load
-- `ready` (function) optional callback to execute after all servers are
-  restarted
-
-#### `instance.stop([ready])`
-
-Shuts down all servers and handlers.
-
-- `ready` (function) optional callback to execute after all servers are ended
 
 ## Plugins
 
@@ -168,24 +150,52 @@ A router is a standard nodejs HTTP handler, with a few special methods attached:
 Called when the handler is shut down. Your plugin _must_ call the provided `cb`
 when its work is done.
 
-#### Frock Methods
+#### Frock Singleton
 
 The `frock` that you get passed has a number of methods and properties you can
-use in your plugins:
+use in your plugins. It is also an [`EventEmitter`][ee], and emits a number of
+events when internal operations occur.
+
+##### Methods
+
+These publicly available methods allow you to control the state of the `frock`
+instance:
+
+- `.run([ready])` Starts the mocks.
+    - `ready` (function) optional callback to execute after all servers are
+      started
+- `.reload([config] [, ready])` Stop and restart all servers, optionally loading
+  a new config.
+    - `config` (object) an optional new config to load
+    - `ready` (function) optional callback to execute after all servers are
+      restarted
+- `.stop([ready])` Shuts down all servers and handlers.
+    - `ready` (function) optional callback to execute after all servers are
+      ended
+
+##### Factories
+
+Factories allow you to create new objects/methods using frock's internal
+libraries, ensuring that your plugin uses the same version as the core `frock`:
 
 - `.router` A router factory, which returns a new router instance. Internally
   `frock` uses [`commuter`][commuter] as its router, and there are benefits to
   you doing the same (see the section on tips for writing plugins)
+- `.logger` A logger factory; in general you'll use the logger you're passed,
+  but you might want access to the core logger, say to listen to events; `frock`
+  uses [`bole`][bole] as its logger, and this gives you access to its singleton.
+
+##### Registries
+
+Registries are `Map` objects storing external dependencies, and allowing you to
+register new dependencies:
+
 - `.dbs` A `Map` containing the key/value databases as `name/levelDb`; with some
   additional methods for registering databases; this is an alternate allowed
   from within your plugin, rather than using the `db` config parameter which
   automatically creates a database for you:
     - `.dbs.register(name)` Given a string `name` create or get a database with
       that name
-- `.pwd` - The working directory (where the `frockfile.json` lives)
-- `.registerHandler(name)` Register a new handler; the `name` passed is both the
-  name of the handler, and what will be passed to `require`, so this can be a
-  modulename to be resolved, or a path (from `frock.pwd`)
 - `.handlers` A `Map` containing the key/value handlers as
   `name/handlerFunction`; also has an additional method not typically found on a
   `Map`:
@@ -193,6 +203,10 @@ use in your plugins:
       require and save a handler; anything you pass as `name` will be resolved
       using node's `require` resolution process, required, and saved to the
       `Map`
+
+##### Properties
+
+- `.pwd` - The working directory (where the `frockfile.json` lives)
 - `.version` The [semver][semver] of the currently running frock
 
 ### Database
@@ -305,6 +319,71 @@ down the chain.
   it adds convenience functions such as `res.json` and handles some logging for
   all requests.
 
+## Cores
+
+Cores in frock are another special type of frock plugin; they can do anything,
+and have access to the core `frock` but they will _never_ be restarted once
+loaded; cores are used to provide control functions to frock, an example might
+be a listener that reloads frock when it receives a POST to its interface:
+
+### Example
+
+```javascript
+// in file <project_root>/cores/reload-control.js
+var http = require('http')
+
+module.exports = reloadCore
+
+function reloadCore (frock, logger, options) {
+  var server = http.createServer(handleRequest)
+
+  server.listen(options.port || 9001, function () {
+    logger.info('listening')
+  })
+
+  function handleRequest (req, res) {
+    if (req.method.toLowerCase() === 'post') {
+      frock.reload(function () {
+        res.statusCode = 200
+        res.end('reloaded')
+      })
+
+      return
+    }
+
+    res.statusCode = 400
+    res.end('bad request')
+  }
+}
+```
+
+Note that its factory function is called with the exact same parameters as a
+frock plugin, but doesn't need to return anything. Once instantiated, it just
+runs until the frock process exits.
+
+Cores are configured in your project's `package.json`, not in the
+`frockfile.json`:
+
+```json
+{
+  "name": "frock-test-project",
+  "version": "0.0.0",
+  "dependencies": {
+    "frock": "0.0.3",
+  },
+  "frock": {
+    "cores": [
+      {
+        "handler": "./cores/reload-control",
+        "options": {
+          "port": 9090
+        }
+      }
+    ]
+  }
+}
+```
+
 ## Response Convenience Functions
 
 Each http request that passes through `frock` has some convenience functions
@@ -337,3 +416,4 @@ Apache 2.0, see [LICENSE](./LICENSE) for details.
 [bole]: http://npm.im/bole
 [commuter]: http://npm.im/commuter
 [semver]: http://npm.im/semver
+[ee]: https://nodejs.org/api/events.html#events_class_events_eventemitter
