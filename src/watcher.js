@@ -11,8 +11,9 @@ const log = bole('frock/watcher')
 function createWatcher (frock, file) {
   const events = new EventEmitter()
 
-  chokidar.watch(file)
+  chokidar.watch(file, {usePolling: true, interval: 1000})
     .on('change', onFrockfileChange)
+    .on('raw', (event, path, details) => log.debug(event, path, details))
 
   return events
 
