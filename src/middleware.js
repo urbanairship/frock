@@ -59,7 +59,7 @@ function utilMiddleware (frock, log, options) {
         return json(data, status)
       }
 
-      if (data.toString) {
+      if (data && data.toString) {
         data = data.toString()
       }
 
