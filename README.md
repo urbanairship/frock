@@ -28,7 +28,7 @@ In your working directory, create a `frockfile.json`:
           },
           "middleware": [
             {
-              "handler": "frock-middleware-chaos",
+              "handler": "./middlewares/occasionally-500",
               "options": {
                 "responses": [
                   {
@@ -253,6 +253,31 @@ last parameter to the `frock` plugin's factory function.
 You can also call any frock instance's `dbs.register(name)` to get the DB; you
 can use this to access other running mock's databases.
 
+### Version Compatibility
+
+When writing frock plugins that you intend to package and distribute, it's
+important to declare version compatibility. frock uses [semver][], and you can
+trust that breaking changes will only be introduced in major versions.
+
+To declare compatibility, add a section to your plugin module's `package.json`:
+
+```json
+"frock": {
+  "compatible-versions": "0.1.0 - 0.9.*"
+}
+```
+
+The `compatible-versions` key follows the semver rules, [semver][], and is
+determined against frock's versions with a:
+
+```javascript
+semver.satisfies(frock_version, your_compabile-versions_string)
+```
+
+If a plugin does not pass that test, a warning is generated when frock starts,
+but it *will not prevent frock from running*, so unexpected behavior could
+occur.
+
 ### Tips for writing Plugins
 
 - Use the `frock.router` factory if your plugin needs an internal router;
@@ -276,10 +301,6 @@ can use this to access other running mock's databases.
 - Use `frock.pwd` whenever you're resolving things; `frock` is mean to run using
   the directory the `frockfile.json` lives in as the working directory; doing
   something different will be unexpected for your users.
-- You should expect a `frock.version` and throw if you don't see something
-  compatible; frock respects [semver][semver] and won't make breaking changes
-  without bumping major versions, so you're save to trust a major-version for
-  your plugin's compatibility.
 - Socket mocks are far simpler than HTTP mocks, and haven't the full suite of
   options that a HTTP mock has.
 - Don't crash :) Remember that all mocks run in the same process; you bring one
