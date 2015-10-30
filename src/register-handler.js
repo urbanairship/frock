@@ -55,7 +55,7 @@ function createHandlerRegister (pwd) {
         }
       } else {
         log.warn(
-          `handler ${name} did not specify it's compatible frock versions!`
+          `handler ${name} did not specify its compatible frock versions!`
         )
       }
     }
