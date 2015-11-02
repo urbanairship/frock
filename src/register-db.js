@@ -1,12 +1,12 @@
-import path from 'path'
+const path = require('path')
 
-import level from 'level'
-import bole from 'bole'
-import {sync as mkdirp} from 'mkdirp'
-
-export default createDbRegister
+const level = require('level')
+const bole = require('bole')
+const {sync: mkdirp} = require('mkdirp')
 
 const log = bole('frock/register-db')
+
+module.exports = createDbRegister
 
 function createDbRegister (pwd, _path) {
   const dbs = new Map()

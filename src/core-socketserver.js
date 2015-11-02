@@ -1,14 +1,14 @@
-import net from 'net'
+const net = require('net')
 
-import bole from 'bole'
-import createDeter from 'deter'
-import enableDestroy from 'server-destroy'
+const bole = require('bole')
+const createDeter = require('deter')
+const enableDestroy = require('server-destroy')
 
-import {handleServerError} from './utils'
-
-export default createSocketServer
+const {handleServerError} = require('./utils')
 
 const log = bole('frock/core-socketsever')
+
+module.exports = createSocketServer
 
 function createSocketServer (frock, config, globalConfig, ready) {
   let constraints = config.connection || {}

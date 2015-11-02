@@ -1,9 +1,9 @@
-import bole from 'bole'
-import {sync as resolve} from 'resolve'
-
-export default createCores
+const bole = require('bole')
+const {sync: resolve} = require('resolve')
 
 const log = bole('frock/core-socketsever')
+
+module.exports = createCores
 
 function createCores (frock) {
   let localPkg = {}

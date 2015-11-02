@@ -1,10 +1,10 @@
-import bole from 'bole'
+const bole = require('bole')
 
-import createHandlerRegister from './register-handler'
-
-export {processMiddleware, noopMiddleware, handleServerError}
+const createHandlerRegister = require('./register-handler')
 
 const log = bole('frock/middleware')
+
+module.exports = {processMiddleware, noopMiddleware, handleServerError}
 
 function processMiddleware (frock, logger, options = {}, middlewares = [], route) {
   const handlers = createHandlerRegister(frock.pwd)

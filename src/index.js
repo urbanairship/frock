@@ -1,22 +1,22 @@
-import 'core-js/shim'
+require('babel-polyfill')
 
-import {EventEmitter} from 'events'
+const {EventEmitter} = require('events')
 
-import commuter from 'commuter'
-import arrayify from 'arrify'
-import bole from 'bole'
+const commuter = require('commuter')
+const arrayify = require('arrify')
+const bole = require('bole')
 
-import createCores from './cores'
-import createSocketServer from './core-socketserver'
-import createHttpServer from './core-httpserver'
-import createHandlerRegister from './register-handler'
-import createDbRegister from './register-db'
-import createConfigRegister from './register-config'
-import pkg from '../package.json'
-
-export default createFrockInstance
+const createCores = require('./cores')
+const createSocketServer = require('./core-socketserver')
+const createHttpServer = require('./core-httpserver')
+const createHandlerRegister = require('./register-handler')
+const createDbRegister = require('./register-db')
+const createConfigRegister = require('./register-config')
+const pkg = require('../package.json')
 
 const log = bole('frock/index')
+
+module.exports = createFrockInstance
 
 function createFrockInstance (_config = {}, {pwd}) {
   const frock = new EventEmitter()

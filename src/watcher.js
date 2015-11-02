@@ -1,12 +1,12 @@
-import fs from 'fs'
-import {EventEmitter} from 'events'
+const fs = require('fs')
+const {EventEmitter} = require('events')
 
-import chokidar from 'chokidar'
-import bole from 'bole'
-
-export default createWatcher
+const chokidar = require('chokidar')
+const bole = require('bole')
 
 const log = bole('frock/watcher')
+
+module.exports = createWatcher
 
 function createWatcher (frock, file) {
   const events = new EventEmitter()

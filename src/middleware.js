@@ -1,6 +1,6 @@
-import url from 'url'
+const url = require('url')
 
-export {utilMiddleware, logMiddleware}
+module.exports = {utilMiddleware, logMiddleware}
 
 function logMiddleware (frock, log, options) {
   return logRequest

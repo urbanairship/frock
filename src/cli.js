@@ -1,15 +1,15 @@
-import fs from 'fs'
-import path from 'path'
+const fs = require('fs')
+const path = require('path')
 
-import minimist from 'minimist'
-import find from 'fs-find-root'
-import bole from 'bole'
-import garnish from 'garnish'
+const minimist = require('minimist')
+const find = require('fs-find-root')
+const bole = require('bole')
+const garnish = require('garnish')
 
-import createFrockInstance from './'
-import createWatcher from './watcher'
+const createFrockInstance = require('./')
+const createWatcher = require('./watcher')
 
-export default processCli
+module.exports = processCli
 
 function processCli (args, ready) {
   const options = {

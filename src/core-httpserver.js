@@ -1,16 +1,16 @@
-import http from 'http'
+const http = require('http')
 
-import bole from 'bole'
-import arrayify from 'arrify'
-import createDeter from 'deter'
+const bole = require('bole')
+const arrayify = require('arrify')
+const createDeter = require('deter')
 import enableDestroy from 'server-destroy'
 
-import {utilMiddleware, logMiddleware} from './middleware'
-import {processMiddleware, handleServerError} from './utils'
-
-export default createHttpServer
+const {utilMiddleware, logMiddleware} = require('./middleware')
+const {processMiddleware, handleServerError} = require('./utils')
 
 const log = bole('frock/core-httpsever')
+
+module.exports = createHttpServer
 
 function createHttpServer (frock, config, globalConfig, ready) {
   let constraints = config.connection || {}

@@ -1,11 +1,10 @@
-import bole from 'bole'
-import evidence from 'evidence'
-
-export default createConfigRegister
+const bole = require('bole')
+const evidence = require('evidence')
 
 const log = bole('frock/register-config')
-
 const DEFAULT_WHITELIST = ['127.0.0.1', '::1']
+
+module.exports = createConfigRegister
 
 function createConfigRegister () {
   const configStore = evidence()

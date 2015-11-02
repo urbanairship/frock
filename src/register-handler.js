@@ -1,12 +1,12 @@
-import bole from 'bole'
-import {sync as resolve} from 'resolve'
-import semver from 'semver'
+const bole = require('bole')
+const {sync: resolve} = require('resolve')
+const semver = require('semver')
 
-import pkg from '../package.json'
-
-export default createHandlerRegister
+const pkg = require('../package.json')
 
 const log = bole('frock/register-handler')
+
+module.exports = createHandlerRegister
 
 function createHandlerRegister (pwd) {
   const handlers = new Map()
