@@ -1,4 +1,8 @@
-require('babel-polyfill')
+try {
+  require('babel-polyfill')
+} catch (e) {
+  // babel polyfill throws if it's ever included in any other module
+}
 
 const {EventEmitter} = require('events')
 
