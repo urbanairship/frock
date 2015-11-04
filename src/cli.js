@@ -11,7 +11,7 @@ const createWatcher = require('./watcher')
 
 module.exports = processCli
 
-function processCli (args, ready) {
+function processCli (args, _process, ready) {
   const options = {
     alias: {
       nowatch: 'w',
@@ -23,11 +23,18 @@ function processCli (args, ready) {
   const argv = minimist(args, options)
   const logLevel = argv.debug ? 'debug' : 'info'
 
-  let logOutput = process.stdout
+  let pc = _process
+
+  if (typeof pc === 'function') {
+    pc = process
+    ready = _process
+  }
+
+  let logOutput = pc.stdout
 
   if (!argv.raw) {
     logOutput = garnish({level: logLevel})
-    logOutput.pipe(process.stdout)
+    logOutput.pipe(pc.stdout)
   }
 
   bole.output({
@@ -43,7 +50,7 @@ function processCli (args, ready) {
 
   // if we weren't given a frockfile path, find one
   if (!file) {
-    find.file('frockfile.json', process.cwd(), (err, foundFile) => {
+    find.file('frockfile.json', pc.cwd(), (err, foundFile) => {
       if (err) {
         return ready(err)
       }

@@ -8,7 +8,7 @@ const log = bole('frock/register-handler')
 
 module.exports = createHandlerRegister
 
-function createHandlerRegister (pwd) {
+function createHandlerRegister (pwd, _require = require) {
   const handlers = new Map()
   const paths = new Map()
 
@@ -18,12 +18,12 @@ function createHandlerRegister (pwd) {
   return handlers
 
   function register (name) {
-    const handlerPath = resolve(name, {basedir: pwd})
-    const handler = require(handlerPath)
-
     if (handlers.has(name)) {
       return handlers.get(name)
     }
+
+    const handlerPath = resolve(name, {basedir: pwd})
+    const handler = _require(handlerPath)
 
     handlers.set(name, handler)
     paths.set(name, handlerPath)
@@ -38,7 +38,7 @@ function createHandlerRegister (pwd) {
           name.replace(/\/$/, '') + '/package.json',
           {basedir: pwd}
         )
-        lpkg = require(pkgPath)
+        lpkg = _require(pkgPath)
       } catch (e) {
         log.debug(`unable to require path ${e.message}`)
       }
@@ -69,7 +69,7 @@ function createHandlerRegister (pwd) {
     log.debug(`unloading all required handlers`)
 
     for (let val of paths.values()) {
-      delete require.cache[val]
+      delete _require.cache[val]
     }
 
     handlers.clear()

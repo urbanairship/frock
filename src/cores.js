@@ -5,11 +5,11 @@ const log = bole('frock/core-socketsever')
 
 module.exports = createCores
 
-function createCores (frock) {
+function createCores (frock, _require = require) {
   let localPkg = {}
 
   try {
-    localPkg = require(resolve('./package.json', {basedir: frock.pwd}))
+    localPkg = _require(resolve('./package.json', {basedir: frock.pwd}))
   } catch (e) {
     log.debug('could not locate a project-local package.json')
   }
