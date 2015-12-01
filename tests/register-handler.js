@@ -8,6 +8,10 @@ const resolve = {
   sync: (name) => `/home/${name}`
 }
 
+const rechoir = {
+  prepare: () => true
+}
+
 const FROCK_VERSION = '0.1.1'
 
 const lib = proxyquire(
@@ -15,6 +19,7 @@ const lib = proxyquire(
   {
     'resolve': resolve,
     'bole': fakeBole.mock,
+    'rechoir': rechoir,
     '../package.json': {version: FROCK_VERSION},
     '@noCallThru': true
   }
