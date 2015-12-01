@@ -438,6 +438,34 @@ content type will be set to `application/json` before sending:
   the difference with the other options is this one will log an error's
   stacktrace to the console, if present.
 
+## ES2015, CoffeeScript, et al
+
+There's a good chance that you'll want to use ES2015 (or other transpile-to-js)
+in your locally included `frock` plugins; this is totally doable! However,
+you'll need to have the correct interpreter installed into the project where
+your `frockfile.json` resides. An example using `babel` for ES2015 compilation:
+
+In your `package.json` (or `.babelrc`):
+
+```json
+"babel": {
+  "presets": [
+    "es2015"
+  ]
+}
+```
+
+Then make sure the correct packages are installed in your project:
+
+```bash
+npm install --save-dev babel-register
+npm install --save-dev babel-preset-es2015
+```
+
+Internally, frock uses [interpret][] to determine how a file should be
+transformed (if at all); if [interpret][] doesn't support a transpiler, then
+frock won't either.
+
 ## License
 
 Apache 2.0, see [LICENSE](./LICENSE) for details.
@@ -446,4 +474,5 @@ Apache 2.0, see [LICENSE](./LICENSE) for details.
 [bole]: http://npm.im/bole
 [commuter]: http://npm.im/commuter
 [semver]: http://npm.im/semver
+[interpret]: http://npm.im/interpret
 [ee]: https://nodejs.org/api/events.html#events_class_events_eventemitter
