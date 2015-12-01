@@ -1,7 +1,7 @@
 const bole = require('bole')
 const {sync: resolve} = require('resolve')
 const semver = require('semver')
-const config = require('interpret').config
+const {extensions} = require('interpret')
 const rechoir = require('rechoir')
 
 const pkg = require('../package.json')
@@ -27,7 +27,7 @@ function createHandlerRegister (pwd, _require = require) {
     const handlerPath = resolve(name, {basedir: pwd})
 
     try {
-      rechoir.prepare(config, handlerPath)
+      rechoir.prepare(extensions, handlerPath)
     } catch (e) {
       // pass, but log the error
       log.error(`Error preparing transform for ${name}\n  ${e.message}`)

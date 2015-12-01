@@ -445,7 +445,16 @@ in your locally included `frock` plugins; this is totally doable! However,
 you'll need to have the correct interpreter installed into the project where
 your `frockfile.json` resides. An example using `babel` for ES2015 compilation:
 
-In your `package.json` (or `.babelrc`):
+First, ensure your files are named with the `.babel.js` extension:
+
+```js
+// some-file.babel.js
+module.exports = function createSomeMock (frock, logger, {info} = {}) {
+  // bla bla bla
+}
+```
+
+In your `package.json` (or you can put a similar blob in `.babelrc`):
 
 ```json
 "babel": {
@@ -458,8 +467,19 @@ In your `package.json` (or `.babelrc`):
 Then make sure the correct packages are installed in your project:
 
 ```bash
-npm install --save-dev babel-register
+npm install --save-dev babel-core
 npm install --save-dev babel-preset-es2015
+```
+
+And make sure your `frockfile.json` has the correct handler defined:
+
+```json
+//inside some route...
+{
+  "path": "/api/segments",
+  "methods": ["GET"],
+  "handler": "./some-file.babel",
+}
 ```
 
 Internally, frock uses [interpret][] to determine how a file should be
