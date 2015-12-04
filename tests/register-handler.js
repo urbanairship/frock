@@ -4,6 +4,8 @@ const proxyquire = require('proxyquire')
 const fakeModule = require('./stubs/fake-module')
 const fakeBole = fakeModule({}, ['debug', 'warn', 'error', 'info'])
 
+const {dup} = require('../lib/utils')
+
 const resolve = {
   sync: (name) => `/home/${name}`
 }
@@ -218,6 +220,3 @@ test(`teardown ${__filename}`, t => {
   t.pass('tore it down')
 })
 
-function dup (obj) {
-  return JSON.parse(JSON.stringify(obj))
-}

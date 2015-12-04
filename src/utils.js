@@ -4,7 +4,7 @@ const createHandlerRegister = require('./register-handler')
 
 const log = bole('frock/middleware')
 
-module.exports = {processMiddleware, noopMiddleware, handleServerError}
+module.exports = {processMiddleware, noopMiddleware, handleServerError, dup}
 
 function processMiddleware (frock, logger, options = {}, middlewares = [], route) {
   const handlers = createHandlerRegister(frock.pwd)
@@ -76,4 +76,8 @@ function handleServerError (logger, config) {
       `it's recommended that you restart frock`
     )
   }
+}
+
+function dup (obj) {
+  return JSON.parse(JSON.stringify(obj))
 }
