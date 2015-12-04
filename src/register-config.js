@@ -1,10 +1,13 @@
 const bole = require('bole')
 const evidence = require('evidence')
 
+const {dup} = require('./utils')
+
 const log = bole('frock/register-config')
 const DEFAULT_WHITELIST = ['127.0.0.1', '::1']
 
 module.exports = createConfigRegister
+module.exports.DEFAULT_WHITELIST = DEFAULT_WHITELIST
 
 function createConfigRegister () {
   const configStore = evidence()
@@ -31,5 +34,7 @@ function createConfigRegister () {
     }
 
     configStore.write(_config)
+
+    return dup(_config)
   }
 }
