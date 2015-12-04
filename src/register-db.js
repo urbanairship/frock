@@ -8,7 +8,7 @@ const log = bole('frock/register-db')
 
 module.exports = createDbRegister
 
-function createDbRegister (pwd, _path) {
+function createDbRegister (pwd, _path, _require = require) {
   const level = loadCompatibleDb()
   const dbs = new Map()
 
@@ -81,7 +81,7 @@ function createDbRegister (pwd, _path) {
     let required
 
     try {
-      required = require(resolve(pkg, {basedir: pwd}))
+      required = _require(resolve(pkg, {basedir: pwd}))
     } catch (e) {
       // pass
     }
