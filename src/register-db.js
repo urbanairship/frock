@@ -1,14 +1,15 @@
 const path = require('path')
 
-const level = require('level')
 const bole = require('bole')
 const {sync: mkdirp} = require('mkdirp')
+const {sync: resolve} = require('resolve')
 
 const log = bole('frock/register-db')
 
 module.exports = createDbRegister
 
 function createDbRegister (pwd, _path) {
+  const level = loadCompatibleDb()
   const dbs = new Map()
 
   let dbPath = _path
@@ -19,7 +20,12 @@ function createDbRegister (pwd, _path) {
   return dbs
 
   function register (name) {
-    if (!dbPath) {
+    if (!level) {
+      throw new Error(
+        `A handler requested a database, but you don't have a local database\n` +
+          `installed; please see the documentation for further information.`
+      )
+    } else if (!dbPath) {
       throw new Error(
         `A handler requested a database, but a database path wasn't specified.`
       )
@@ -57,5 +63,29 @@ function createDbRegister (pwd, _path) {
 
     // clear our saved dbs if we're changing paths
     dbs.clear()
+  }
+
+  function loadCompatibleDb () {
+    const compatibleDbPkgs = ['level', 'levelup']
+
+    for (let i = 0; i < compatibleDbPkgs.length; ++i) {
+      let db = tryRequire(compatibleDbPkgs[i])
+
+      if (db) {
+        return db
+      }
+    }
+  }
+
+  function tryRequire (pkg) {
+    let required
+
+    try {
+      required = require(resolve(pkg, {basedir: pwd}))
+    } catch (e) {
+      // pass
+    }
+
+    return required
   }
 }

@@ -8,9 +8,6 @@ In your working directory, create a `frockfile.json`:
 
 ```json
 {
-  "db": {
-    "path": "_db"
-  },
   "connection": {
     "whitelist": ["127.0.0.1", "::1"]
   },
@@ -74,7 +71,6 @@ In your working directory, create a `frockfile.json`:
     {
       "port": 8190,
       "handler": "./mocks/socket-service",
-      "db": "socket-service",
       "options": {
         "responseType": 10
       }
@@ -262,8 +258,10 @@ trust that breaking changes will only be introduced in major versions.
 To declare compatibility, add a section to your plugin module's `package.json`:
 
 ```json
-"frock": {
-  "compatible-versions": "0.1.0 - 0.9.*"
+{
+  "frock": {
+    "compatible-versions": "0.1.0 - 0.9.*"
+  }
 }
 ```
 
@@ -399,7 +397,7 @@ Cores are configured in your project's `package.json`, not in the
   "name": "frock-test-project",
   "version": "0.0.0",
   "dependencies": {
-    "frock": "0.0.3",
+    "frock": "0.0.3"
   },
   "frock": {
     "cores": [
@@ -438,6 +436,40 @@ content type will be set to `application/json` before sending:
   the difference with the other options is this one will log an error's
   stacktrace to the console, if present.
 
+## DB
+
+If you're writing your own mocks/fakes, and you need some level of persistence
+or shared data, a database is convenient for this purpose. frock has methods for
+sharing a [level][] database amongst your plugins, if requested, but the
+packages are not included by default. To configure database support:
+
+- Install the level package into your local project (where your `frockfile.json`
+ lives): `npm install level`
+- Configure the database path in your frockfile with the top-level
+  configuration item `db`; example:`"db": { "path": "_db" }`
+- Request a named db for any plugin that requires one.
+
+An example frockfile, using a db:
+
+```json
+{
+  "db": { "path": "_db" },
+  "servers": [
+    {
+      "port": 8080,
+      "routes": [
+        {
+          "path": "/api/something",
+          "methods": ["GET", "POST"],
+          "handler": "./mock/something",
+          "db": "some_db"
+        }
+      ]
+    }
+  ]
+}
+```
+
 ## ES2015, CoffeeScript, et al
 
 There's a good chance that you'll want to use ES2015 (or other transpile-to-js)
@@ -457,10 +489,12 @@ module.exports = function createSomeMock (frock, logger, {info} = {}) {
 In your `package.json` (or you can put a similar blob in `.babelrc`):
 
 ```json
-"babel": {
-  "presets": [
-    "es2015"
-  ]
+{
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  }
 }
 ```
 
@@ -478,7 +512,7 @@ And make sure your `frockfile.json` has the correct handler defined:
 {
   "path": "/api/segments",
   "methods": ["GET"],
-  "handler": "./some-file.babel",
+  "handler": "./some-file.babel"
 }
 ```
 
