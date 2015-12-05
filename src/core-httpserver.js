@@ -29,7 +29,7 @@ function createHttpServer (frock, config, globalConfig, ready) {
   const router = frock.router(defaultRoute, config.baseUrl)
   const perServerMiddleware = processMiddleware(
     frock,
-    bole('middleware:${config.port}>'),
+    bole(`middleware:${config.port}>`),
     config.options,
     config.middleware,
     deter(router)

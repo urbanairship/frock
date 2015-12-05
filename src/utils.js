@@ -39,10 +39,10 @@ function processMiddleware (frock, logger, options = {}, middlewares = [], route
 
     function mw (idx, rq, rs) {
       if (idx >= middlewareStack.length) {
-        return route(req, res)
+        return route(rq, rs)
       }
 
-      middlewareStack[idx](req, res, mw.bind(null, ++idx))
+      middlewareStack[idx](rq, rs, mw.bind(null, ++idx))
     }
   }
 
