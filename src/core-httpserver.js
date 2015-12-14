@@ -3,7 +3,7 @@ const http = require('http')
 const bole = require('bole')
 const arrayify = require('arrify')
 const createDeter = require('deter')
-import enableDestroy from 'server-destroy'
+const enableDestroy = require('server-destroy')
 
 const {utilMiddleware, logMiddleware} = require('./middleware')
 const {processMiddleware, handleServerError} = require('./utils')

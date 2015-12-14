@@ -1,4 +1,5 @@
 require('./cli')
+require('./core-httpserver')
 require('./core-socketserver')
 require('./cores')
 require('./middleware')
