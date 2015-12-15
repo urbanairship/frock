@@ -2,6 +2,10 @@
 
 An plugin-based HTTP and socket service mock.
 
+[![Build Status](http://img.shields.io/travis/urbanairship/frock/master.svg?style=flat-square)](https://travis-ci.org/urbanairship/frock)
+[![npm install](http://img.shields.io/npm/dm/frock.svg?style=flat-square)](https://www.npmjs.org/package/frock)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/feross/standard)
+
 ## Example
 
 In your working directory, create a `frockfile.json`:
@@ -440,7 +444,7 @@ content type will be set to `application/json` before sending:
 
 If you're writing your own mocks/fakes, and you need some level of persistence
 or shared data, a database is convenient for this purpose. frock has methods for
-sharing a [level][] database amongst your plugins, if requested, but the
+sharing a [level][levelup] database amongst your plugins, if requested, but the
 packages are not included by default. To configure database support:
 
 - Install the level package into your local project (where your `frockfile.json`
