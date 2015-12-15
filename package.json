@@ -18,6 +18,10 @@
     "url": "git+https://github.com/urbanairship/frock.git"
   },
   "author": "Urban Airship",
+  "contributors": [
+    "Nathan Wittstock <nate.wittstock@urbanairship.com>",
+    "Jesse Keane <jesse.keane@urbanairship.com>"
+  ],
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/urbanairship/frock/issues"
