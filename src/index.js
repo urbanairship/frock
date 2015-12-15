@@ -167,7 +167,7 @@ function createFrockInstance (_config = {}, {pwd}) {
 
         ready()
 
-        // if we're hot-reloading, we aren't actually stoping; don't emit
+        // if we're hot-reloading, we aren't actually stopping; don't emit
         if (!hot) {
           frock.emit('stop')
         }
