@@ -8,7 +8,7 @@ var cli = require('../lib/cli')
 module.exports = processCli
 
 // if we aren't in testing, we just run the cli
-if (!process.env['__FROCK_TEST_ENV']) {
+if (require.main === module) {
   processCli()
 }
 
