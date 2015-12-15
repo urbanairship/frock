@@ -1,3 +1,8 @@
+# Code of Conduct
+
+We want to keep our project open and inclusive. We ask that before you
+contribute, you read and follow our [Code of Conduct][code-of-conduct].
+
 # Submitting Issues
 
 Before submitting a new issue, please search the [existing issues][issues].
@@ -32,6 +37,7 @@ bug report should include:
 All contributions are covered under the Apache License, Version 2.0. See
 [LICENSE][license] for details.
 
+[code-of-conduct]: ./CODE_OF_CONDUCT.md
 [license]: ./LICENSE
 [issues]: https://github.com/urbanairship/frock/issues/
 [standard]: http://standardjs.com/
