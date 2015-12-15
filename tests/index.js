@@ -13,3 +13,5 @@ require('./register-config')
 require('./register-db')
 require('./register-handler')
 require('./utils')
+
+require('./integration')

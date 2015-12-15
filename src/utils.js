@@ -9,7 +9,7 @@ module.exports = {processMiddleware, noopMiddleware, handleServerError, dup}
 function processMiddleware (frock, logger, options = {}, middlewares = [], route) {
   const handlers = createHandlerRegister(frock.pwd)
 
-  let middlewareStack = middlewares.map(middleware => {
+  const middlewareStack = middlewares.map(middleware => {
     if (typeof middleware.handler === 'function') {
       log.debug(`initializing non-required middleware`)
       return middleware.handler(frock, logger, middleware.options)

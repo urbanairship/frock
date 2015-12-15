@@ -1,0 +1,56 @@
+{
+  "servers": [
+    {
+      "port": 8080,
+      "routes": [
+        {
+          "path": "/path/*",
+          "methods": ["GET"],
+          "handler": "./mock/get-route",
+          "options": {
+            "message": "whoop"
+          },
+          "middleware": [
+            {
+              "handler": "./mock/mw-set-header"
+            }
+          ]
+        },
+        {
+          "path": "/path/*",
+          "methods": ["POST"],
+          "handler": "./mock/post-route"
+        },
+        {
+          "path": "*",
+          "methods": "any",
+          "handler": "./mock/any-route"
+        }
+      ]
+    },
+    {
+      "port": 8090,
+      "routes": [
+        {
+          "path": "*",
+          "methods": "any",
+          "handler": "./mock/any-route"
+        }
+      ],
+      "middleware": [
+        {
+          "handler": "./mock/mw-set-header"
+        }
+      ]
+    }
+  ],
+  "sockets": [
+    {
+      "port": 8190,
+      "handler": "./mock/socket-service",
+      "options": {
+        "responseType": 10
+      }
+    }
+  ]
+}
