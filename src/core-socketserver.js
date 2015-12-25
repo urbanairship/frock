@@ -11,7 +11,7 @@ const enableDestroy = require('server-destroy')
 
 const {handleServerError} = require('./utils')
 
-const log = bole('frock/core-socketsever')
+const log = bole('frock/core-socketserver')
 
 module.exports = createSocketServer
 
