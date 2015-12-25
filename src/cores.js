@@ -6,7 +6,7 @@
 const bole = require('bole')
 const {sync: resolve} = require('resolve')
 
-const log = bole('frock/core-socketsever')
+const log = bole('frock/cores')
 
 module.exports = createCores
 
