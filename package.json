@@ -1,6 +1,6 @@
 {
   "name": "frock",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "An plugin-based HTTP and socket service mock/fake.",
   "main": "lib/index.js",
   "bin": {
