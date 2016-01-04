@@ -31,3 +31,5 @@ lib/
 
 # Avoid mistakes
 .npmrc
+
+_db

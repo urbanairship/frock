@@ -30,3 +30,4 @@ node_modules
 .npmrc
 
 .idea
+_db

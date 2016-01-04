@@ -1,0 +1,18 @@
+{
+  "db": {
+    "path": "_db"
+  },
+  "servers": [
+    {
+      "port": 8080,
+      "routes": [
+        {
+          "path": "*",
+          "methods": ["GET"],
+          "handler": "./db",
+          "db": "test"
+        }
+      ]
+    }
+  ]
+}

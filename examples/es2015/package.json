@@ -1,0 +1,22 @@
+{
+  "name": "frock-example-es2015",
+  "version": "1.0.0",
+  "description": "frock example using a babel transpiled module",
+  "main": "hello-world.babel.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "frock": "frock"
+  },
+  "author": "Urban Airship <web-team@urbanairship.com>",
+  "license": "Apache-2.0",
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  },
+  "devDependencies": {
+    "babel-core": "^6.3.26",
+    "babel-preset-es2015": "^6.3.13",
+    "frock": "^1.0.1"
+  }
+}

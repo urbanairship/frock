@@ -1,0 +1,15 @@
+{
+  "name": "frock-example-hello-world",
+  "version": "1.0.0",
+  "description": "Hello World example for frock",
+  "main": "hello-world.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "frock": "frock"
+  },
+  "author": "Urban Airship <web-team@urbanairship.com>",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "frock": "^1.0.1"
+  }
+}
