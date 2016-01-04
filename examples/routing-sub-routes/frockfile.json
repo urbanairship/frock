@@ -1,0 +1,19 @@
+{
+  "servers": [
+    {
+      "port": 8080,
+      "routes": [
+        {
+          "path": "/mount-a/*",
+          "methods": ["GET"],
+          "handler": "./index-one-two"
+        },
+        {
+          "path": "/mount-b/*",
+          "methods": ["GET"],
+          "handler": "./index-one-two"
+        }
+      ]
+    }
+  ]
+}

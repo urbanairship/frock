@@ -1,0 +1,33 @@
+{
+  "servers": [
+    {
+      "port": 8080,
+      "routes": [
+        {
+          "path": "/api",
+          "methods": ["GET"],
+          "handler": "./respond-with-message",
+          "options": {
+            "message": "GET at /api"
+          }
+        },
+        {
+          "path": "/api",
+          "methods": ["POST"],
+          "handler": "./respond-with-message",
+          "options": {
+            "message": "POST at /api"
+          }
+        },
+        {
+          "path": "*",
+          "methods": "any",
+          "handler": "./respond-with-message",
+          "options": {
+            "message": "any other request"
+          }
+        }
+      ]
+    }
+  ]
+}

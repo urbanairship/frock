@@ -1,20 +1,42 @@
 # frock
 
-An plugin-based HTTP and socket service mock.
+A plugin-based tool for running fake HTTP and socket services.
 
 [![Build Status](http://img.shields.io/travis/urbanairship/frock/master.svg?style=flat-square)](https://travis-ci.org/urbanairship/frock)
 [![npm install](http://img.shields.io/npm/dm/frock.svg?style=flat-square)](https://www.npmjs.org/package/frock)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/feross/standard)
 
-## Example
+frock is a tool for running fake services and serving mock data. It's designed
+for developers who work in service-oriented architectures, and need to stand up
+fake services that approximate production services in their development
+environments.
+
+frock itself is a host for running HTTP and socket services, and its HTTP router
+makes it simple to run multiple services on the same port. Outside of the core
+functions of starting services and routing to handlers, frock's functionality is
+implemented through plugins and middleware that you write.
+
+There are some generic plugins provided for out-of-the-box functionality:
+
+- [frock-static][static] is a plugin for serving static content from files,
+  directories, or URLs.
+- [frock-proxy][proxy] is a plugin for proxying requests from frock to a remote
+  server.
+  
+For a quick overview of the functionality frock provides, see the
+[example](#quick-start-example) in this README.
+
+## Quick-Start Example
+
+frock is a Node.js CLI utility, which loads a _frockfile_ from your project
+directory. In the following example, we'll create a service that proxies
+requests to your local development server at http://localhost:8052, but
+intercepts some URLs to serve static content from a variety of sources.
 
 In your working directory, create a `frockfile.json`:
 
 ```json
 {
-  "connection": {
-    "whitelist": ["127.0.0.1", "::1"]
-  },
   "servers": [
     {
       "port": 8080,
@@ -26,21 +48,7 @@ In your working directory, create a `frockfile.json`:
           "options": {
             "file": "fixtures/static/segments.json",
             "contentType": "application/json"
-          },
-          "middleware": [
-            {
-              "handler": "./middlewares/occasionally-500",
-              "options": {
-                "responses": [
-                  {
-                    "status": 500,
-                    "message": "whoops",
-                    "frequency": 0.1
-                  }
-                ]
-              }
-            }
-          ]
+          }
         },
         {
           "path": "/api/remote",
@@ -49,15 +57,6 @@ In your working directory, create a `frockfile.json`:
           "options": {
             "url": "http://raw.githubusercontent.com/somewhere/something.json",
             "contentType": "application/json"
-          }
-        },
-        {
-          "path": "/api/static/*",
-          "methods": ["GET"],
-          "handler": "frock-static",
-          "options": {
-            "dir": "fixtures/static/",
-            "baseUrl": "/api/static/"
           }
         },
         {
@@ -70,23 +69,14 @@ In your working directory, create a `frockfile.json`:
         }
       ]
     }
-  ],
-  "sockets": [
-    {
-      "port": 8190,
-      "handler": "./mocks/socket-service",
-      "options": {
-        "responseType": 10
-      }
-    }
   ]
 }
 ```
 
-Install the plugins you requested:
+Install frock and the plugins you requested:
 
 ```shell
-$ npm install frock-static frock-proxy
+$ npm install frock frock-static frock-proxy
 ```
 
 Then, run frock:
@@ -94,6 +84,31 @@ Then, run frock:
 ```shell
 $ frock
 ```
+
+This examples expects that your `PATH` is set to run Node.js packages from your
+project's installed `node_modules`; see the [Understanding Packages][packages]
+section of the documentation for details.
+
+## Detailed Documentation
+
+frock's [documentation](./docs) is split into several sections:
+
+- [Using frock in your project/Understanding Packages][packages] is an overview
+  of how frock is meant to sit alongside your project.
+- Implementing mocks/fakes:
+    - [Plugins][plugins]: writing plugins, where you'll implement your fake
+      services.
+    - [Middleware][middleware]: writing middleware, which can augment your
+      plugins' functionality.
+    - [Cores][cores]: writing cores, which can extend the core functionality of
+      frock.
+- [_frockfile_ Reference][frockfile], which explains the configuration file format
+  that frock uses, the `frockfile.json`
+- [Examples][examples] which provides detailed examples of using frock, and can
+  help you understand how to implement your fake services.
+- [API][api] details the frock API, which can be used programatically rather
+  than via the provided CLI. This also documents the frock singleton your
+  plugins will be passed when they are instantiated.
 
 ## CLI
 
@@ -107,430 +122,26 @@ Use the built-in help to learn about other options:
 $ frock --help
 ```
 
-## API
+## Testing
 
-### `frock(config) -> instance`
+From the project directory:
 
-Instantiates a new frock. Config is as defined above. The instance has a number
-of properties and methods attached, see the section on the
-[frock singleton](#frock-singleton) for more information.
-
-
-## Plugins
-
-A frock plugin is just a factory function that returns a router with some
-specific properties. Frock plugins must take this shape:
-
-### Factory Function: `createPlugin(frock, logger, options, [db]) -> router`
-
-The factory function will be called whenever the frock is `run` or on `reload`.
-
-- `frock` The frock instance
-- `logger` (function) The frock logger. A [bole][] instance that's
-  contextualized with your plugin name and the port on which you're running.
-  Example: `logger.info('some message', someObj)`
-- `options` the options object that was in the frock config
-- `db` if you requested a database, you'll find the [level][levelup] instance
-  here
-
-Additionally, the factory function must expose one method:
-
-- `factory.validate(config)` Validates a configuration object, returns a
-  `{key: 'error message'}` object on invalid configuration items, and a falsey
-  value if everything is good to go.
-
-The factory function must return a router:
-
-#### Router: `router(req, res)`
-
-A router is a standard nodejs HTTP handler, with a few special methods attached:
-
-##### `end(cb)`
-
-Called when the handler is shut down. Your plugin _must_ call the provided `cb`
-when its work is done.
-
-#### Frock Singleton
-
-The `frock` that you get passed has a number of methods and properties you can
-use in your plugins. It is also an [`EventEmitter`][ee], and emits a number of
-events when internal operations occur.
-
-##### Methods
-
-These publicly available methods allow you to control the state of the `frock`
-instance:
-
-- `.run([ready])` Starts the mocks.
-    - `ready` (function) optional callback to execute after all servers are
-      started
-- `.reload([config] [, ready])` Stop and restart all servers, optionally loading
-  a new config.
-    - `config` (object) an optional new config to load
-    - `ready` (function) optional callback to execute after all servers are
-      restarted
-- `.stop([ready])` Shuts down all servers and handlers.
-    - `ready` (function) optional callback to execute after all servers are
-      ended
-
-##### Factories
-
-Factories allow you to create new objects/methods using frock's internal
-libraries, ensuring that your plugin uses the same version as the core `frock`:
-
-- `.router` A router factory, which returns a new router instance. Internally
-  `frock` uses [`commuter`][commuter] as its router, and there are benefits to
-  you doing the same (see the section on tips for writing plugins)
-- `.logger` A logger factory; in general you'll use the logger you're passed,
-  but you might want access to the core logger, say to listen to events; `frock`
-  uses [`bole`][bole] as its logger, and this gives you access to its singleton.
-
-##### Registries
-
-Registries are `Map` objects storing external dependencies, and allowing you to
-register new dependencies:
-
-- `.dbs` A `Map` containing the key/value databases as `name/levelDb`; with some
-  additional methods for registering databases; this is an alternate allowed
-  from within your plugin, rather than using the `db` config parameter which
-  automatically creates a database for you:
-    - `.dbs.register(name)` Given a string `name` create or get a database with
-      that name
-- `.handlers` A `Map` containing the key/value handlers as
-  `name/handlerFunction`; also has an additional method not typically found on a
-  `Map`:
-    - `.handlers.register(name)` Given a requirable string/path `name` this will
-      require and save a handler; anything you pass as `name` will be resolved
-      using node's `require` resolution process, required, and saved to the
-      `Map`
-
-##### Properties
-
-- `.pwd` - The working directory (where the `frockfile.json` lives)
-- `.version` The [semver][semver] of the currently running frock
-
-##### Events
-
-- `run`: emits when the `frock` instance is running, after all services have
-  been started
-- `reload`: emits after the `frock` instance has successfully shut down all
-  services and restarted them
-- `stop`: emits just before the `frock` instance shuts down (and the process
-  exits)
-
-### Database
-
-If you create a `db` in your frockfile, you can request a db to be passed to any
-plugin; you can use this to create some persistence in your mocks. A database is
-passed per name, so it's up to you to define how you use them. This isn't meant
-to be safe; it's meant to be flexible. An example config:
-
-```json
-{
-  "db": {
-    "path": "_db"
-  },
-  "servers": [
-    {
-      "port": 8081,
-      "routes": [
-        {
-          "path": "/api/whatever/*",
-          "methods": ["GET"],
-          "handler": "some-handler",
-          "db": "some-db"
-        }
-      ]
-    }
-  ]
-}
+```shell
+$ npm test
 ```
 
-When you use this config, a [level][levelup] instance called "some-db" will be
-created in your `db.path` folder that was specified, and it'll be passed as the
-last parameter to the `frock` plugin's factory function.
-
-You can also call any frock instance's `dbs.register(name)` to get the DB; you
-can use this to access other running mock's databases.
-
-### Version Compatibility
-
-When writing frock plugins that you intend to package and distribute, it's
-important to declare version compatibility. frock uses [semver][], and you can
-trust that breaking changes will only be introduced in major versions.
-
-To declare compatibility, add a section to your plugin module's `package.json`:
-
-```json
-{
-  "frock": {
-    "compatible-versions": "0.1.0 - 0.9.*"
-  }
-}
-```
-
-The `compatible-versions` key follows the semver rules, [semver][], and is
-determined against frock's versions with a:
-
-```javascript
-semver.satisfies(frock_version, your_compabile-versions_string)
-```
-
-If a plugin does not pass that test, a warning is generated when frock starts,
-but it *will not prevent frock from running*, so unexpected behavior could
-occur.
-
-### Tips for writing Plugins
-
-- Use the `frock.router` factory if your plugin needs an internal router;
-  `frock` uses [`commuter`][commuter] as its router, which has the ability to
-  automatically deal with subroutes. This is available as a property of the
-  frock to ensure that a frock and its plugins are using the same version of
-  `commuter`.
-- If you choose to not use `frock.router`, ensure you're stripping the
-  `options._path` from what you're passing to your router.
-- Make everything configurable; `frock` is very configurable but you can shoot
-  yourself in the foot by hard-coding configuration parameters. For instance,
-  any running mock can access any other mock's database; if you want to avoid
-  collisions you'd best make these configurable in your `frockfile.json`
-    - To that end, anything that is in your handler's `options` key is passed
-      straight through to your plugin; put whatever you need in there.
-    - Don't create your own option keys that start with underscores; these
-      should be reserved for `frock` to insert options that your frock might
-      need.
-    - Don't modify the `frock` that you are passed; this is the global instance
-      that is shared between all running mocks.
-- Use `frock.pwd` whenever you're resolving things; `frock` is mean to run using
-  the directory the `frockfile.json` lives in as the working directory; doing
-  something different will be unexpected for your users.
-- Socket mocks are far simpler than HTTP mocks, and haven't the full suite of
-  options that a HTTP mock has.
-- Don't crash :) Remember that all mocks run in the same process; you bring one
-  down and you bring down the whole thing.
-
-## Middlewares
-
-Middleware in frock is a special type of frock plugin; the requirements are
-basically the same, but what needs to be called at the end varies. A minimal
-middleware example:
-
-### Example
-
-```javascript
-module.exports = occasionally401
-
-function occasionally401 (frock, logger, options) {
-  return handler
-
-  function handler (req, res, next) {
-    if (Math.random() < options.frequency) {
-      logger.info('sending 401 via middleware')
-
-      res.statusCode = 401
-      return res.end()
-    }
-
-    next(req, res)
-  }
-}
-```
-
-Note that its factory function is called with the exact same parameters as a
-frock plugin, but the handler needs to take a `next` function. If you don't
-directly respond to the request as it moves through your middleware, the last
-thing you need to do is call `next` with parameters `(req, res)` to move back
-down the chain.
-
-### Notes
-
-- Middleware is currently only available for HTTP mocks.
-- Middleware is always called in the order it's defined in your
-  `frockfile.json`, and can be either a local path to a module, or a `npm`
-  installed module, same as a `frock` plugin
-- There is an internal utility middleware that is _always_ added to your routes;
-  it adds convenience functions such as `res.json` and handles some logging for
-  all requests.
-
-## Cores
-
-Cores in frock are another special type of frock plugin; they can do anything,
-and have access to the core `frock` but they will _never_ be restarted once
-loaded; cores are used to provide control functions to frock, an example might
-be a listener that reloads frock when it receives a POST to its interface:
-
-### Example
-
-```javascript
-// in file <project_root>/cores/reload-control.js
-var http = require('http')
-
-module.exports = reloadCore
-
-function reloadCore (frock, logger, options) {
-  var server = http.createServer(handleRequest)
-
-  server.listen(options.port || 9001, function () {
-    logger.info('listening')
-  })
-
-  function handleRequest (req, res) {
-    if (req.method.toLowerCase() === 'post') {
-      frock.reload(function () {
-        res.statusCode = 200
-        res.end('reloaded')
-      })
-
-      return
-    }
-
-    res.statusCode = 400
-    res.end('bad request')
-  }
-}
-```
-
-Note that its factory function is called with the exact same parameters as a
-frock plugin, but doesn't need to return anything. Once instantiated, it just
-runs until the frock process exits.
-
-Cores are configured in your project's `package.json`, not in the
-`frockfile.json`:
-
-```json
-{
-  "name": "frock-test-project",
-  "version": "0.0.0",
-  "dependencies": {
-    "frock": "0.0.3"
-  },
-  "frock": {
-    "cores": [
-      {
-        "handler": "./cores/reload-control",
-        "options": {
-          "port": 9090
-        }
-      }
-    ]
-  }
-}
-```
-
-## Response Convenience Functions
-
-Each http request that passes through `frock` has some convenience functions
-added that'll be available before it hits your plugin or middleware:
-
-- `req.GET` an object containing all `GET` parameters that were in the requests
-  URL
-- `res.json(data, [status = 200])` responds with a JSON payload, optionally
-  setting the status:
-    - `data` an object to be JSON serialized
-    - `status` an optional integer status, such as `201` or `404`; defaults to
-      `200`
-
-The following error functions will take a `data` parameter, which can be either
-a string or an object; if it's an object, the data will be serialized and the
-content type will be set to `application/json` before sending:
-
-- `res.e404([data])` send a 404
-- `res.e400([data])` send a 400
-- `res.e500([data])` send a 500
-- `res.error(Error, [status = 500])` send a 500 with an optional error object,
-  the difference with the other options is this one will log an error's
-  stacktrace to the console, if present.
-
-## DB
-
-If you're writing your own mocks/fakes, and you need some level of persistence
-or shared data, a database is convenient for this purpose. frock has methods for
-sharing a [level][levelup] database amongst your plugins, if requested, but the
-packages are not included by default. To configure database support:
-
-- Install the level package into your local project (where your `frockfile.json`
- lives): `npm install level`
-- Configure the database path in your frockfile with the top-level
-  configuration item `db`; example:`"db": { "path": "_db" }`
-- Request a named db for any plugin that requires one.
-
-An example frockfile, using a db:
-
-```json
-{
-  "db": { "path": "_db" },
-  "servers": [
-    {
-      "port": 8080,
-      "routes": [
-        {
-          "path": "/api/something",
-          "methods": ["GET", "POST"],
-          "handler": "./mock/something",
-          "db": "some_db"
-        }
-      ]
-    }
-  ]
-}
-```
-
-## ES2015, CoffeeScript, et al
-
-There's a good chance that you'll want to use ES2015 (or other transpile-to-js)
-in your locally included `frock` plugins; this is totally doable! However,
-you'll need to have the correct interpreter installed into the project where
-your `frockfile.json` resides. An example using `babel` for ES2015 compilation:
-
-First, ensure your files are named with the `.babel.js` extension:
-
-```js
-// some-file.babel.js
-module.exports = function createSomeMock (frock, logger, {info} = {}) {
-  // bla bla bla
-}
-```
-
-In your `package.json` (or you can put a similar blob in `.babelrc`):
-
-```json
-{
-  "babel": {
-    "presets": [
-      "es2015"
-    ]
-  }
-}
-```
-
-Then make sure the correct packages are installed in your project:
-
-```bash
-npm install --save-dev babel-core
-npm install --save-dev babel-preset-es2015
-```
-
-And make sure your `frockfile.json` has the correct handler defined:
-
-```json
-//inside some route...
-{
-  "path": "/api/segments",
-  "methods": ["GET"],
-  "handler": "./some-file.babel"
-}
-```
-
-Internally, frock uses [interpret][] to determine how a file should be
-transformed (if at all); if [interpret][] doesn't support a transpiler, then
-frock won't either.
+Any test file that should be run must be required in the `tests/index.js` file.
 
 ## License
 
 Apache 2.0, see [LICENSE](./LICENSE) for details.
 
-[levelup]: https://github.com/Level/levelup
-[bole]: http://npm.im/bole
-[commuter]: http://npm.im/commuter
-[semver]: http://npm.im/semver
-[interpret]: http://npm.im/interpret
-[ee]: https://nodejs.org/api/events.html#events_class_events_eventemitter
+[packages]: ./docs/understanding-packages.md
+[api]: ./docs/api.md
+[cores]: ./docs/cores.md
+[plugins]: ./docs/plugins.md
+[middleware]: ./docs/middleware.md
+[frockfile]: ./docs/frockfile.md
+[examples]: ./examples
+[static]: http://www.npmjs.com/packages/frock-static
+[proxy]: http://www.npmjs.com/packages/frock-proxy

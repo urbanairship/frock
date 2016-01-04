@@ -1,0 +1,17 @@
+{
+  "servers": [
+    {
+      "port": 8080,
+      "routes": [
+        {
+          "path": "*",
+          "methods": ["GET"],
+          "handler": "./hello-world.babel",
+          "options": {
+            "message": "beep boop"
+          }
+        }
+      ]
+    }
+  ]
+}
