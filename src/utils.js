@@ -4,12 +4,19 @@
  * https://github.com/urbanairship/frock/blob/master/LICENSE
  */
 const bole = require('bole')
+const createDeter = require('deter')
 
 const createHandlerRegister = require('./register-handler')
 
 const log = bole('frock/middleware')
 
-module.exports = {processMiddleware, noopMiddleware, handleServerError, dup}
+module.exports = {
+  processMiddleware,
+  noopMiddleware,
+  handleServerError,
+  dup,
+  createConnectionFilter
+}
 
 function processMiddleware (frock, logger, options = {}, middlewares = [], route) {
   const handlers = createHandlerRegister(frock.pwd)
@@ -85,4 +92,21 @@ function handleServerError (logger, config) {
 
 function dup (obj) {
   return JSON.parse(JSON.stringify(obj))
+}
+
+function createConnectionFilter ({argv = {}} = {}, config = {}, globalConfig = {}, fail) {
+  const disableWhitelist = argv['unsafe-disable-connection-filtering']
+
+  if (disableWhitelist) {
+    // return a noop router
+    return (router) => (...args) => router(...args)
+  }
+
+  let constraints = config.connection || {}
+
+  if (!constraints.whitelist && !constraints.blacklist) {
+    constraints = globalConfig.connection
+  }
+
+  return createDeter(constraints, fail)
 }
