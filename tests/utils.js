@@ -10,7 +10,13 @@ const fakeModule = require('./stubs/fake-module')
 const fakeBole = fakeModule({}, ['debug', 'warn', 'error', 'info'])
 const fakeRegister = fakeModule({}, ['register'])
 
-const {processMiddleware, noopMiddleware, handleServerError, dup} = proxyquire(
+const {
+  processMiddleware,
+  noopMiddleware,
+  handleServerError,
+  dup,
+  createConnectionFilter
+} = proxyquire(
   '../lib/utils',
   {
     'bole': fakeBole.mock,
@@ -124,7 +130,7 @@ test('dup duplicates an object', t => {
   t.deepEqual(duped, obj, 'has the same contents')
 })
 
-test('logs server error', t=> {
+test('logs server error', t => {
   t.plan(2)
 
   const instance = handleServerError({error}, {port: 123})
@@ -134,6 +140,23 @@ test('logs server error', t=> {
   function error (err) {
     t.ok(err, 'error logged')
     t.ok(err.includes('123'), 'includes port number')
+  }
+})
+
+test('createConnectionFilter returns noop router when disabled', t => {
+  t.plan(1)
+
+  const argv = ['a', 'b', 'c']
+  const filter = createConnectionFilter(
+    {argv: {'unsafe-disable-connection-filtering': true}}
+  )
+
+  const router = filter(route)
+
+  router.apply(null, dup(argv))
+
+  function route (...args) {
+    t.deepEqual(args, argv)
   }
 })
 

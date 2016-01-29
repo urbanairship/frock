@@ -23,7 +23,7 @@ function processCli (args, _process, ready) {
       debug: 'd',
       raw: 'r'
     },
-    boolean: ['nowatch', 'debug', 'raw']
+    boolean: ['nowatch', 'debug', 'raw', 'unsafe-disable-connection-filtering']
   }
   const argv = minimist(args, options)
   const logLevel = argv.debug ? 'debug' : 'info'

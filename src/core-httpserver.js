@@ -7,22 +7,17 @@ const http = require('http')
 
 const bole = require('bole')
 const arrayify = require('arrify')
-const createDeter = require('deter')
 const enableDestroy = require('server-destroy')
 
 const {utilMiddleware, logMiddleware} = require('./middleware')
-const {processMiddleware, handleServerError} = require('./utils')
+const {processMiddleware, handleServerError, createConnectionFilter} = require('./utils')
 
 const log = bole('frock/core-httpsever')
 
 module.exports = createHttpServer
 
 function createHttpServer (frock, config, globalConfig, ready) {
-  let constraints = config.connection || {}
-
-  if (!constraints.whitelist && !constraints.blacklist) {
-    constraints = globalConfig.connection
-  }
+  const deter = createConnectionFilter(frock, config, globalConfig, onWhitelistFail)
 
   if (!config.middleware) {
     config.middleware = []
@@ -30,7 +25,6 @@ function createHttpServer (frock, config, globalConfig, ready) {
 
   config.middleware.unshift({handler: utilMiddleware})
 
-  const deter = createDeter(constraints, onWhitelistFail)
   const router = frock.router(defaultRoute, config.baseUrl)
   const perServerMiddleware = processMiddleware(
     frock,

@@ -27,7 +27,9 @@ const log = bole('frock/index')
 
 module.exports = createFrockInstance
 
-function createFrockInstance (_config = {}, {pwd}) {
+function createFrockInstance (_config = {}, argv = {}) {
+  const pwd = argv.pwd
+
   const frock = new EventEmitter()
   const handlers = createHandlerRegister(pwd)
   const servers = []
@@ -36,6 +38,7 @@ function createFrockInstance (_config = {}, {pwd}) {
 
   let firstRun = true
 
+  frock.argv = argv
   frock.pwd = pwd
   frock.version = pkg.version
 

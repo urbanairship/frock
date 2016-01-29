@@ -6,25 +6,19 @@
 const net = require('net')
 
 const bole = require('bole')
-const createDeter = require('deter')
 const enableDestroy = require('server-destroy')
 
-const {handleServerError} = require('./utils')
+const {handleServerError, createConnectionFilter} = require('./utils')
 
 const log = bole('frock/core-socketserver')
 
 module.exports = createSocketServer
 
 function createSocketServer (frock, config, globalConfig, ready) {
-  let constraints = config.connection || {}
+  const deter = createConnectionFilter(frock, config, globalConfig, onSocketWhitelistFail)
+
   let handler
   let server
-
-  if (!constraints.whitelist && !constraints.blacklist) {
-    constraints = globalConfig.connection
-  }
-
-  const deter = createDeter(constraints, onSocketWhitelistFail)
 
   try {
     frock.handlers.register(config.handler)
@@ -48,7 +42,10 @@ function createSocketServer (frock, config, globalConfig, ready) {
     config.db ? frock.dbs.register(config.db) : null
   )
 
-  server = net.createServer(config.port, deter(handler))
+  server = net.createServer(
+    config.port,
+    deter(handler)
+  )
 
   log.debug(`added socket [${config.handler}]`)
 

@@ -115,6 +115,44 @@ test('rejects non-whitelist clients', t => {
   }
 })
 
+test('can override whitelist', t => {
+  t.plan(4)
+
+  const frock = {
+    handlers: {
+      register: () => {},
+      get: () => handler
+    },
+    argv: {
+      'unsafe-disable-connection-filtering': true
+    }
+  }
+
+  lib(frock, {port: testPort}, {connection: {whitelist: []}}, (err, {server, port}) => {
+    if (err) {
+      t.fail('failed to start server!', err)
+
+      return
+    }
+
+    t.equal(testPort, port)
+
+    const client = net.createConnection(port)
+
+    client.on('end', () => {
+      t.pass('was killed')
+      server.destroy(() => t.pass('server destroyed'))
+    })
+  })
+
+  function handler (frk, log, opts) {
+    return function (client) {
+      t.pass('client should connect')
+      client.end()
+    }
+  }
+})
+
 test(`teardown ${__filename}`, t => {
   t.plan(1)
   t.pass('tore it down')
