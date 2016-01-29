@@ -17,18 +17,26 @@ const createWatcher = require('./watcher')
 module.exports = processCli
 
 function processCli (args, _process, ready) {
+  let pc = _process
+
   const options = {
     alias: {
       nowatch: 'w',
       debug: 'd',
       raw: 'r'
     },
-    boolean: ['nowatch', 'debug', 'raw', 'unsafe-disable-connection-filtering']
+    boolean: ['nowatch', 'debug', 'raw', 'unsafe-disable-connection-filtering'],
+    default: {
+      nowatch: Boolean(pc.env.FROCK_NO_WATCH),
+      debug: Boolean(pc.env.FROCK_DEBUG),
+      raw: Boolean(pc.env.FROCK_RAW_OUTPUT),
+      'unsafe-disable-connection-filtering': Boolean(
+        pc.env.FROCK_UNSAFE_DISABLE_CONNECTION_FILTERING
+      )
+    }
   }
   const argv = minimist(args, options)
   const logLevel = argv.debug ? 'debug' : 'info'
-
-  let pc = _process
 
   if (typeof pc === 'function') {
     pc = process
