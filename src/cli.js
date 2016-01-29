@@ -17,7 +17,12 @@ const createWatcher = require('./watcher')
 module.exports = processCli
 
 function processCli (args, _process, ready) {
-  let pc = _process
+  let pc = _process || process
+
+  if (typeof pc === 'function') {
+    pc = process
+    ready = _process
+  }
 
   const options = {
     alias: {
@@ -37,11 +42,6 @@ function processCli (args, _process, ready) {
   }
   const argv = minimist(args, options)
   const logLevel = argv.debug ? 'debug' : 'info'
-
-  if (typeof pc === 'function') {
-    pc = process
-    ready = _process
-  }
 
   let logOutput = pc.stdout
 

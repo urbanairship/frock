@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [HEAD]
 
+## [1.1.1]
+- Fixes a bug that prevented frock from running via the CLI
+
 ## [1.1.0]
 - Adds a CLI flag `--unsafe-disable-connection-filtering` for bypassing
   connection filtering (a.k.a the default whitelist)
@@ -28,4 +31,5 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 [1.0.1]: https://github.com/urbanairship/frock/compare/v1.0.0...v1.0.1
 [1.0.2]: https://github.com/urbanairship/frock/compare/v1.0.1...v1.0.2
 [1.1.0]: https://github.com/urbanairship/frock/compare/v1.0.2...v1.1.0
-[HEAD]: https://github.com/urbanairship/frock/compare/v1.1.0...HEAD
+[1.1.1]: https://github.com/urbanairship/frock/compare/v1.1.0...v1.1.1
+[HEAD]: https://github.com/urbanairship/frock/compare/v1.1.1...HEAD
