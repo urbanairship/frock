@@ -154,7 +154,9 @@ function defaultRoute (req, res) {
 }
 
 function onWhitelistFail (req, res) {
-  const msg = 'access from non-whitelisted, or from blacklisted address'
+  const msg = 'access from non-whitelisted, or from blacklisted address. ' +
+    'see https://github.com/urbanairship/frock/blob/master/docs/frockfile.md#connection-object-optional ' +
+    'for further details.'
 
   res.statusCode = 403
   res.end(msg)

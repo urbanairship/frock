@@ -89,6 +89,9 @@ This examples expects that your `PATH` is set to run Node.js packages from your
 project's installed `node_modules`; see the [Understanding Packages][packages]
 section of the documentation for details.
 
+_Note:_ By default, frock only allows connections from `localhost`; see the
+[docs on connection filtering][filtering] for details.
+
 ## Detailed Documentation
 
 frock's [documentation](./docs) is split into several sections:
@@ -142,6 +145,7 @@ Apache 2.0, see [LICENSE](./LICENSE) for details.
 [plugins]: ./docs/plugins.md
 [middleware]: ./docs/middleware.md
 [frockfile]: ./docs/frockfile.md
+[filtering]: ./docs/frockfile.md#connection-object-optional 
 [examples]: ./examples
 [static]: http://www.npmjs.com/packages/frock-static
 [proxy]: http://www.npmjs.com/packages/frock-proxy
