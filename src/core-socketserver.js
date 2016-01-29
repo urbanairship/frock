@@ -63,5 +63,9 @@ createSocketServer._onSocketWhitelistFail = onSocketWhitelistFail
 
 function onSocketWhitelistFail (client) {
   client.end()
-  log.info('access socket from non-whitelisted, or from blacklisted address')
+  log.info(
+    'access socket from non-whitelisted, or from blacklisted address. ' +
+    'see https://github.com/urbanairship/frock/blob/master/docs/frockfile.md#connection-object-optional ' +
+    'for further details.'
+  )
 }
