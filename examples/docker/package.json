@@ -1,0 +1,15 @@
+{
+  "name": "frock-example-docker",
+  "version": "1.0.0",
+  "description": "Hello Docker example for frock",
+  "main": "hello-docker.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "frock"
+  },
+  "author": "Urban Airship <web-team@urbanairship.com>",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "frock": "^1.0.1"
+  }
+}
