@@ -249,6 +249,24 @@ install the required modules locally.
 See the [database example][db-example] to see how you can use a persistent db
 in your projects.
 
+## Docker
+
+There may be cases where you wish to distribute your fake services to a team
+that isn't accustomed to Node.js tooling; [Docker][docker] is a great fit for
+this use-case. While there are far more ways to package an application in Docker
+than can be discussed here, a [simple example][docker-example] is provided. This
+example shows how to package a pre-defined fake service and package it up in a
+docker container.
+
+To build the container, change to the example directory and run the following:
+
+```bash
+# build the image
+docker build -t mycompany/frock .
+# run the image exposing the port
+docker run -p 8080:8080 -d mycompany/frock
+```
+
 [hello-world]: ./hello-world
 [logging-example]: ./logging
 [interpret]: https://www.npmjs.com/packages/interpret
@@ -263,3 +281,5 @@ in your projects.
 [url-parameters]: ./routing-url-parameters
 [delay-middleware]: https://www.npmjs.com/packages/frock-middleware-delay
 [delay-github]: https://github.com/urbanairship/frock-middleware-delay
+[docker-example]: ./docker
+[docker]: https://www.docker.com/
