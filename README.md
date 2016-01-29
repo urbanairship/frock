@@ -125,6 +125,16 @@ Use the built-in help to learn about other options:
 $ frock --help
 ```
 
+Some options can be set via environment variables; these provide defaults, which
+can still be overridden by explicitly passing CLI flags. Set these to any value
+besides an empty string to set the default to `true`:
+
+- `FROCK_NO_WATCH` disable watching the frockfile to reload changes
+- `FROCK_DEBUG` set the log level to `debug`
+- `FROCK_RAW_OUTPUT` output the raw log JSON rather than pretty-printing
+- `FROCK_UNSAFE_DISABLE_CONNECTION_FILTERING` disable processing of
+  whitelists/blacklists for connections, and allow any incoming connections
+
 ## Testing
 
 From the project directory:

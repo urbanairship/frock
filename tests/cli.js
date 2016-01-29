@@ -40,7 +40,8 @@ test('correctly sets defaults, performs setup', t => {
   const processObj = {
     cwd: () => '/home/wut',
     stdout: through(),
-    stdin: through()
+    stdin: through(),
+    env: {}
   }
   const filePath = '/home/frockfile.json'
   const frockfile = {jam: true}
@@ -96,7 +97,8 @@ test('can pass a frockfile path', t => {
   const processObj = {
     cwd: () => '/home/wut',
     stdout: through(),
-    stdin: through()
+    stdin: through(),
+    env: {}
   }
   const filePath = '/home/wut/local-frockfile.json'
   const frockfile = {jam: true}
@@ -145,7 +147,8 @@ test(`raw output skips bole`, t => {
   const processObj = {
     cwd: () => '/home/wut',
     stdout: through(),
-    stdin: through()
+    stdin: through(),
+    env: {}
   }
   const filePath = '/home/frockfile.json'
   const frockfile = {jam: true}
@@ -192,13 +195,14 @@ test(`raw output skips bole`, t => {
   })
 })
 
-test(`raw output skips bole`, t => {
+test(`nowatch skips file watcher`, t => {
   t.plan(7)
 
   const processObj = {
     cwd: () => '/home/wut',
     stdout: through(),
-    stdin: through()
+    stdin: through(),
+    env: {}
   }
   const filePath = '/home/frockfile.json'
   const frockfile = {jam: true}
@@ -251,11 +255,66 @@ test('can set debug output', t => {
   const processObj = {
     cwd: () => '/home/wut',
     stdout: through(),
-    stdin: through()
+    stdin: through(),
+    env: {}
   }
   const filePath = '/home/frockfile.json'
   const frockfile = {jam: true}
   const args = ['--debug']
+
+  garnish.once('instantiated', () => {
+    t.pass('instantiated garnish')
+  })
+
+  watcher.once('instantiated', () => {
+    t.pass('instantiated watcher')
+  })
+
+  frock.once('instantiated', (_, contents, argv) => {
+    t.pass('instantiated frock')
+  })
+
+  frock.once('run', ready => {
+    t.pass('ran frock')
+
+    ready()
+  })
+
+  bole.output = opts => {
+    t.equal(opts.level, 'debug', 'instantiated with correct log level')
+  }
+
+  find.file = (name, cwd, ready) => {
+    t.pass('called file finder')
+
+    process.nextTick(() => ready(null, filePath))
+  }
+
+  fs.readFile = (file, ready) => {
+    t.pass('called fs')
+
+    process.nextTick(() => ready(null, JSON.stringify(frockfile)))
+  }
+
+  lib(args, processObj, (err, result) => {
+    t.notOk(err, 'no error was set')
+  })
+})
+
+test('can set options with environment flags', t => {
+  t.plan(8)
+
+  const processObj = {
+    cwd: () => '/home/wut',
+    stdout: through(),
+    stdin: through(),
+    env: {
+      FROCK_DEBUG: 'yep'
+    }
+  }
+  const filePath = '/home/frockfile.json'
+  const frockfile = {jam: true}
+  const args = []
 
   garnish.once('instantiated', () => {
     t.pass('instantiated garnish')
