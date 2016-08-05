@@ -1,7 +1,7 @@
 module.exports = createGetRoute
 
 function createGetRoute (frock, logger, options) {
-  return (req, res) => {
+  return function(req, res) {
     res.end(options.message)
   }
 }
