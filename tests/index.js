@@ -19,4 +19,5 @@ require('./register-db')
 require('./register-handler')
 require('./utils')
 
-require('./integration')
+require('./api-integration')
+require('./cli-integration')
