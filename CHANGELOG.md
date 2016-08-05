@@ -3,6 +3,7 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [HEAD]
+- Adds integration test to catch errors, such as those fixed in [1.1.1]
 
 ## [1.1.1]
 - Fixes a bug that prevented frock from running via the CLI
