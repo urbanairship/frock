@@ -9,7 +9,6 @@ const proxyquire = require('proxyquire')
 
 const fakeModule = require('./stubs/fake-module')
 
-const watcher = fakeModule()
 const frock = fakeModule(void 0, ['run'])
 const garnish = fakeModule(void 0, void 0, true)
 const bole = {}
@@ -24,7 +23,6 @@ const lib = proxyquire(
     'bole': bole,
     'garnish': garnish.mock,
     './': frock.mock,
-    './watcher': watcher.mock,
     '@noCallThru': true
   }
 )
@@ -51,14 +49,11 @@ test('correctly sets defaults, performs setup', t => {
     t.pass('instantiated garnish')
   })
 
-  watcher.once('instantiated', (...args) => {
-    t.equal(args[2], filePath, 'instantiated watcher with frockfile')
-  })
-
   frock.once('instantiated', (_, contents, argv) => {
     t.deepEqual(contents, frockfile)
     t.false(argv.debug)
     t.equal(argv.pwd, '/home')
+    t.equal(argv.file, filePath)
   })
 
   frock.once('run', ready => {
@@ -108,12 +103,9 @@ test('can pass a frockfile path', t => {
     t.pass('instantiated garnish')
   })
 
-  watcher.once('instantiated', (...args) => {
-    t.equal(args[2], filePath, 'instantiated watcher with frockfile')
-  })
-
   frock.once('instantiated', (_, contents, argv) => {
     t.equal(argv.pwd, '/home/wut')
+    t.equal(argv.file, filePath)
   })
 
   frock.once('run', ready => {
@@ -142,7 +134,7 @@ test('can pass a frockfile path', t => {
 })
 
 test(`raw output skips bole`, t => {
-  t.plan(7)
+  t.plan(6)
 
   const processObj = {
     cwd: () => '/home/wut',
@@ -156,10 +148,6 @@ test(`raw output skips bole`, t => {
 
   garnish.once('instantiated', () => {
     t.fail('should not instantiate')
-  })
-
-  watcher.once('instantiated', (...args) => {
-    t.equal(args[2], filePath, 'instantiated watcher with frockfile')
   })
 
   frock.once('instantiated', (_, contents, argv) => {
@@ -195,62 +183,8 @@ test(`raw output skips bole`, t => {
   })
 })
 
-test(`nowatch skips file watcher`, t => {
-  t.plan(7)
-
-  const processObj = {
-    cwd: () => '/home/wut',
-    stdout: through(),
-    stdin: through(),
-    env: {}
-  }
-  const filePath = '/home/frockfile.json'
-  const frockfile = {jam: true}
-  const args = ['--nowatch']
-
-  garnish.once('instantiated', () => {
-    t.pass('instantiated garnish')
-  })
-
-  watcher.once('instantiated', () => {
-    t.fail('should not instantiate')
-  })
-
-  frock.once('instantiated', (_, contents, argv) => {
-    t.pass('instantiated frock')
-  })
-
-  frock.once('run', ready => {
-    t.pass('ran frock')
-
-    ready()
-  })
-
-  bole.output = opts => {
-    t.equal(opts.level, 'info', 'instantiated with correct log level')
-  }
-
-  find.file = (name, cwd, ready) => {
-    t.pass('called file finder')
-
-    process.nextTick(() => ready(null, filePath))
-  }
-
-  fs.readFile = (file, ready) => {
-    t.pass('called fs')
-
-    process.nextTick(() => ready(null, JSON.stringify(frockfile)))
-  }
-
-  lib(args, processObj, (err, result) => {
-    t.notOk(err, 'no error was set')
-
-    watcher.removeAllListeners()
-  })
-})
-
 test('can set debug output', t => {
-  t.plan(8)
+  t.plan(7)
 
   const processObj = {
     cwd: () => '/home/wut',
@@ -264,10 +198,6 @@ test('can set debug output', t => {
 
   garnish.once('instantiated', () => {
     t.pass('instantiated garnish')
-  })
-
-  watcher.once('instantiated', () => {
-    t.pass('instantiated watcher')
   })
 
   frock.once('instantiated', (_, contents, argv) => {
@@ -302,7 +232,7 @@ test('can set debug output', t => {
 })
 
 test('can set options with environment flags', t => {
-  t.plan(8)
+  t.plan(7)
 
   const processObj = {
     cwd: () => '/home/wut',
@@ -318,10 +248,6 @@ test('can set options with environment flags', t => {
 
   garnish.once('instantiated', () => {
     t.pass('instantiated garnish')
-  })
-
-  watcher.once('instantiated', () => {
-    t.pass('instantiated watcher')
   })
 
   frock.once('instantiated', (_, contents, argv) => {

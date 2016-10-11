@@ -11,6 +11,5 @@ COPY . /src
 
 # Run frock
 ENV FROCK_UNSAFE_DISABLE_CONNECTION_FILTERING true
-ENV FROCK_NO_WATCH true
 WORKDIR /src
 CMD ["npm", "start"]

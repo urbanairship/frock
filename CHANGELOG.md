@@ -4,6 +4,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [HEAD]
 - Adds integration test to catch errors, such as those fixed in [1.1.1]
+- Removes file watching functionality, to be replaced with a [core][]
+    - Removes CLI flag `--nowatch` and env variable `FROCK_NO_WATCH`
 
 ## [1.1.1]
 - Fixes a bug that prevented frock from running via the CLI
@@ -34,3 +36,5 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 [1.1.0]: https://github.com/urbanairship/frock/compare/v1.0.2...v1.1.0
 [1.1.1]: https://github.com/urbanairship/frock/compare/v1.1.0...v1.1.1
 [HEAD]: https://github.com/urbanairship/frock/compare/v1.1.1...HEAD
+
+[core]: ./docs/cores.md

@@ -42,7 +42,6 @@
     "arrify": "^1.0.0",
     "babel-polyfill": "^6.3.14",
     "bole": "^2.0.0",
-    "chokidar": "^1.0.5",
     "commuter": "^2.0.0",
     "deter": "^1.0.4",
     "evidence": "^1.0.3",
