@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [HEAD]
+## [2.0.0]
 - Adds integration test to catch errors, such as those fixed in [1.1.1]
 - Removes tests for unsupported versions of Node.js
 - Specifies supported engines in `package.json`
@@ -37,4 +37,5 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 [1.0.2]: https://github.com/urbanairship/frock/compare/v1.0.1...v1.0.2
 [1.1.0]: https://github.com/urbanairship/frock/compare/v1.0.2...v1.1.0
 [1.1.1]: https://github.com/urbanairship/frock/compare/v1.1.0...v1.1.1
-[HEAD]: https://github.com/urbanairship/frock/compare/v1.1.1...HEAD
+[2.0.0]: https://github.com/urbanairship/frock/compare/v1.1.1...v2.0.0
+[HEAD]: https://github.com/urbanairship/frock/compare/v2.0.0...HEAD
