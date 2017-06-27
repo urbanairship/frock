@@ -1,6 +1,6 @@
 {
   "name": "frock",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "description": "A plugin-based tool for running fake HTTP and socket services.",
   "main": "lib/index.js",
   "bin": {
