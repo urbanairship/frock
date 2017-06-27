@@ -42,10 +42,7 @@ function createSocketServer (frock, config, globalConfig, ready) {
     config.db ? frock.dbs.register(config.db) : null
   )
 
-  server = net.createServer(
-    config.port,
-    deter(handler)
-  )
+  server = net.createServer(deter(handler))
 
   log.debug(`added socket [${config.handler}]`)
 
