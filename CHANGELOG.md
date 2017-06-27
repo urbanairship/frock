@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [HEAD]
 - Adds integration test to catch errors, such as those fixed in [1.1.1]
+- Removes tests for unsupported versions of Node.js
+- Specifies supported engines in `package.json`
+- Fixes a bug that would crash frock when using socket servers on versions of
+  Node.js greater than v4.
 
 ## [1.1.1]
 - Fixes a bug that prevented frock from running via the CLI
