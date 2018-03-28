@@ -4,6 +4,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [HEAD]
 
+## [3.0.0]
+
 - Removes file watching functionality. This feature has been moved to a core
   plugin, [frock-core-watcher][], which replicates the feature and adds the
   ability to watch files other than the `frockfile`.
@@ -45,6 +47,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 [1.1.0]: https://github.com/urbanairship/frock/compare/v1.0.2...v1.1.0
 [1.1.1]: https://github.com/urbanairship/frock/compare/v1.1.0...v1.1.1
 [2.0.0]: https://github.com/urbanairship/frock/compare/v1.1.1...v2.0.0
-[HEAD]: https://github.com/urbanairship/frock/compare/v2.0.0...HEAD
+[3.0.0]: https://github.com/urbanairship/frock/compare/v2.0.0...v3.0.0
+[HEAD]: https://github.com/urbanairship/frock/compare/v3.0.0...HEAD
 
 [frock-core-watcher]: https://github.com/fardog/frock-core-watcher
