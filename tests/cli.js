@@ -66,10 +66,11 @@ test('correctly sets defaults, performs setup', t => {
     t.equal(opts.level, 'info', 'instantiated with correct log level')
   }
 
-  find.file = (name, cwd, ready) => {
-    t.equal(cwd, processObj.cwd(), 'called file finder with pwd')
-
-    process.nextTick(() => ready(null, filePath))
+  find.file = (name, cwd) => {
+    return new Promise((resolve, reject) => {
+      t.equal(cwd, processObj.cwd(), 'called file finder with pwd')
+      resolve(filePath)
+    })
   }
 
   fs.readFile = (file, ready) => {
@@ -164,10 +165,12 @@ test(`raw output skips bole`, t => {
     t.equal(opts.level, 'info', 'instantiated with correct log level')
   }
 
-  find.file = (name, cwd, ready) => {
-    t.pass('called file finder')
+  find.file = (name, cwd) => {
+    return new Promise((resolve, reject) => {
+      t.pass('called file finder')
 
-    process.nextTick(() => ready(null, filePath))
+      resolve(filePath)
+    })
   }
 
   fs.readFile = (file, ready) => {
@@ -214,10 +217,12 @@ test('can set debug output', t => {
     t.equal(opts.level, 'debug', 'instantiated with correct log level')
   }
 
-  find.file = (name, cwd, ready) => {
-    t.pass('called file finder')
+  find.file = (name, cwd) => {
+    return new Promise((resolve, reject) => {
+      t.pass('called file finder')
 
-    process.nextTick(() => ready(null, filePath))
+      resolve(filePath)
+    })
   }
 
   fs.readFile = (file, ready) => {
@@ -264,10 +269,12 @@ test('can set options with environment flags', t => {
     t.equal(opts.level, 'debug', 'instantiated with correct log level')
   }
 
-  find.file = (name, cwd, ready) => {
-    t.pass('called file finder')
+  find.file = (name, cwd) => {
+    return new Promise((resolve, reject) => {
+      t.pass('called file finder')
 
-    process.nextTick(() => ready(null, filePath))
+      resolve(filePath)
+    })
   }
 
   fs.readFile = (file, ready) => {

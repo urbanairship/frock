@@ -43,7 +43,7 @@
     "commuter": "^2.0.0",
     "deter": "^2.0.0",
     "evidence": "^1.0.3",
-    "fs-find-root": "^1.0.2",
+    "fs-find-root": "^2.0.0",
     "garnish": "^5.2.0",
     "interpret": "^1.1.0",
     "minimist": "^1.2.0",
