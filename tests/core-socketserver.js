@@ -58,7 +58,7 @@ test('successfully starts socket server', t => {
     t.equal(testPort, port)
 
     const client = net.createConnection(port, () => {
-      client.write(new Buffer('beep'))
+      client.write(Buffer.from('beep'))
     })
 
     client.on('end', () => {

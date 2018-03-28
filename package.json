@@ -34,7 +34,7 @@
     "portfinder": "^0.4.0",
     "proxyquire": "^1.7.3",
     "rimraf": "^2.4.3",
-    "standard": "^5.1.0",
+    "standard": "^11.0.1",
     "tape": "^4.0.0",
     "through": "^2.3.8"
   },

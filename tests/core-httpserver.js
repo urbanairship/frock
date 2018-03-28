@@ -93,7 +93,7 @@ test('successfully starts http server', t => {
 
     return function (req, res) {
       t.pass('client connected')
-      res.end(new Buffer('boop'))
+      res.end(Buffer.from('boop'))
     }
   }
 })

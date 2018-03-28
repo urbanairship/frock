@@ -135,7 +135,7 @@ test('json method blows up on bad json, sends error', t => {
   const expectedHeader = ['Content-Type', 'application/json']
   const data = {beep: 'beep'}
 
-  data.beep = data  // oh no circular reference!
+  data.beep = data // oh no circular reference!
 
   const req = {url: ''}
   const res = {

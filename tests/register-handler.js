@@ -224,4 +224,3 @@ test(`teardown ${__filename}`, t => {
 
   t.pass('tore it down')
 })
-
