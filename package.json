@@ -30,12 +30,11 @@
   },
   "homepage": "https://github.com/urbanairship/frock#readme",
   "devDependencies": {
-    "os-tmpdir": "^1.0.1",
-    "portfinder": "^0.4.0",
-    "proxyquire": "^1.7.3",
-    "rimraf": "^2.4.3",
+    "os-tmpdir": "^1.0.2",
+    "portfinder": "^1.0.13",
+    "proxyquire": "^2.0.1",
     "standard": "^11.0.1",
-    "tape": "^4.0.0",
+    "tape": "^4.9.0",
     "through": "^2.3.8"
   },
   "dependencies": {
