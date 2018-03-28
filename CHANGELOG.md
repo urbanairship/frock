@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [HEAD]
+
+- Removes file watching functionality. This feature has been moved to a core
+  plugin, [frock-core-watcher][], which replicates the feature and adds the
+  ability to watch files other than the `frockfile`.
+    - Removes CLI flag `--nowatch` and env variable `FROCK_NO_WATCH`
+
 ## [2.0.0]
 - Adds integration test to catch errors, such as those fixed in [1.1.1]
 - Removes tests for unsupported versions of Node.js
@@ -39,3 +46,5 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 [1.1.1]: https://github.com/urbanairship/frock/compare/v1.1.0...v1.1.1
 [2.0.0]: https://github.com/urbanairship/frock/compare/v1.1.1...v2.0.0
 [HEAD]: https://github.com/urbanairship/frock/compare/v2.0.0...HEAD
+
+[frock-core-watcher]: https://github.com/fardog/frock-core-watcher

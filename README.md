@@ -116,8 +116,7 @@ frock's [documentation](./docs) is split into several sections:
 ## CLI
 
 The `frock` command will search upward from your current directory for a
-`frockfile.json`, and run it; it will also start up a watcher on that file and
-hot-reload on any changes made to it.
+`frockfile.json`, and run it.
 
 Use the built-in help to learn about other options:
 
@@ -129,7 +128,6 @@ Some options can be set via environment variables; these provide defaults, which
 can still be overridden by explicitly passing CLI flags. Set these to any value
 besides an empty string to set the default to `true`:
 
-- `FROCK_NO_WATCH` disable watching the frockfile to reload changes
 - `FROCK_DEBUG` set the log level to `debug`
 - `FROCK_RAW_OUTPUT` output the raw log JSON rather than pretty-printing
 - `FROCK_UNSAFE_DISABLE_CONNECTION_FILTERING` disable processing of

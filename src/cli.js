@@ -12,7 +12,6 @@ const bole = require('bole')
 const garnish = require('garnish')
 
 const createFrockInstance = require('./')
-const createWatcher = require('./watcher')
 
 module.exports = processCli
 
@@ -26,13 +25,11 @@ function processCli (args, _process, ready) {
 
   const options = {
     alias: {
-      nowatch: 'w',
       debug: 'd',
       raw: 'r'
     },
-    boolean: ['nowatch', 'debug', 'raw', 'unsafe-disable-connection-filtering'],
+    boolean: ['debug', 'raw', 'unsafe-disable-connection-filtering'],
     default: {
-      nowatch: Boolean(pc.env.FROCK_NO_WATCH),
       debug: Boolean(pc.env.FROCK_DEBUG),
       raw: Boolean(pc.env.FROCK_RAW_OUTPUT),
       'unsafe-disable-connection-filtering': Boolean(
@@ -84,6 +81,7 @@ function processCli (args, _process, ready) {
       return ready(err)
     }
 
+    argv.file = file
     argv.pwd = path.dirname(file)
 
     let frockfile
@@ -96,12 +94,7 @@ function processCli (args, _process, ready) {
 
     const frock = createFrockInstance(frockfile, argv)
 
-    // run frock, create the watcher if requested
     frock.run(() => {
-      if (!argv.nowatch) {
-        createWatcher(frock, file)
-      }
-
       ready(null, {argv, frock, frockfile, launched: true})
     })
   }

@@ -4,7 +4,6 @@ frockfile   The JSON configuration file; will search upward for `frockfile.json`
             from the `pwd` if one is not provided, failing if not found.
 
 Options:
-  -w --nowatch       Don't watch the frockfile for changes
   -d --debug         Enable verbose (debug) logging
   -r --raw           Don't process the output, instead outputting ndjson logs
   --unsafe-disable-connection-filtering
