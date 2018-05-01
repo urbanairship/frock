@@ -7,14 +7,13 @@
     "frock": "./bin/frock.js"
   },
   "engines": {
-    "node": ">=4 <5 || >=6"
+    "node": ">=6"
   },
   "scripts": {
     "prepublish": "npm test",
-    "lint": "standard src/**/*.js tests/**/*.js",
-    "build": "rimraf lib && babel src --out-dir lib",
+    "lint": "standard **/*.js *.js",
     "start": "npm run build -- --watch",
-    "test": "npm run build && babel-node tests/index.js &&  npm run lint"
+    "test": "tape tests/**/*.js tests/*.js && npm run lint"
   },
   "repository": {
     "type": "git",
@@ -31,36 +30,27 @@
   },
   "homepage": "https://github.com/urbanairship/frock#readme",
   "devDependencies": {
-    "babel-cli": "^6.3.17",
-    "babel-preset-es2015": "^6.3.13",
-    "os-tmpdir": "^1.0.1",
-    "portfinder": "^0.4.0",
-    "proxyquire": "^1.7.3",
-    "rimraf": "^2.4.3",
-    "standard": "^5.1.0",
-    "tape": "^4.0.0",
+    "os-tmpdir": "^1.0.2",
+    "portfinder": "^1.0.13",
+    "proxyquire": "^2.0.1",
+    "standard": "^11.0.1",
+    "tape": "^4.9.0",
     "through": "^2.3.8"
   },
   "dependencies": {
-    "arrify": "^1.0.0",
-    "babel-polyfill": "^6.3.14",
-    "bole": "^2.0.0",
+    "arrify": "^1.0.1",
+    "bole": "^3.0.2",
     "commuter": "^2.0.0",
-    "deter": "^1.0.4",
+    "deter": "^2.0.0",
     "evidence": "^1.0.3",
-    "fs-find-root": "^1.0.2",
-    "garnish": "^2.3.0",
-    "interpret": "^1.0.0",
-    "minimist": "^1.1.3",
+    "fs-find-root": "^2.0.0",
+    "garnish": "^5.2.0",
+    "interpret": "^1.1.0",
+    "minimist": "^1.2.0",
     "mkdirp": "^0.5.1",
     "rechoir": "^0.6.2",
-    "resolve": "^1.1.6",
-    "semver": "^5.0.3",
+    "resolve": "^1.6.0",
+    "semver": "^5.5.0",
     "server-destroy": "^1.0.1"
-  },
-  "babel": {
-    "presets": [
-      "es2015"
-    ]
   }
 }

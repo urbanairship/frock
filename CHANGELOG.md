@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [HEAD]
 
+- Removes support for Node.js v4
+- Removes babel transpiling in favor of native ES6+ support in the latest
+  Node.js versions.
+
 ## [3.0.0]
 
 - Removes file watching functionality. This feature has been moved to a core
