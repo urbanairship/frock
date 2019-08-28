@@ -3,7 +3,7 @@
 `frock` is a plugin-based system; in order to make it do anything other than
 start services, you'll need to create a frock plugin.
 
-If you're interested stricly in the documentation for the plugin API, take a
+If you're interested strictly in the documentation for the plugin API, take a
 look at the [plugins docs](../plugins.md).
 
 ## Hello World Example
@@ -174,7 +174,7 @@ follows:
   `/people/miki/family`
 - You can also match multiples like `/people/:name/:item`, which would match
   `/people/miki/games` and `/people/miki/documents`
-  
+
 When you define these sorts of patterns, the captures parameters will be
 available on the `request.params` hash; so for the example
 `/people/:name/:item` matching `/people/miki/games` would have a `req.params`
