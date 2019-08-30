@@ -2,7 +2,15 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [HEAD]
+## [4.1.0]
+
+- Adds support for TypeScript handlers. You will need to have a supported [.ts
+  transpiler][] such as [ts-node][] installed in your project.
+
+[.ts transpiler]: https://github.com/gulpjs/interpret/blob/9f83af40dfc35c5de84d96fc45851f9f06246278/index.js#L104-L113
+[ts-node]: https://www.npmjs.com/package/ts-node
+
+## [4.0.0]
 
 - Removes support for Node.js v4
 - Removes babel transpiling in favor of native ES6+ support in the latest
@@ -52,6 +60,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 [1.1.1]: https://github.com/urbanairship/frock/compare/v1.1.0...v1.1.1
 [2.0.0]: https://github.com/urbanairship/frock/compare/v1.1.1...v2.0.0
 [3.0.0]: https://github.com/urbanairship/frock/compare/v2.0.0...v3.0.0
-[HEAD]: https://github.com/urbanairship/frock/compare/v3.0.0...HEAD
+[4.0.0]: https://github.com/urbanairship/frock/compare/v3.0.0...v4.0.0
+[4.1.0]: https://github.com/urbanairship/frock/compare/v4.0.0...v4.1.0
+
+
 
 [frock-core-watcher]: https://github.com/fardog/frock-core-watcher
