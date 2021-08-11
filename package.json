@@ -40,7 +40,7 @@
   "dependencies": {
     "arrify": "^1.0.1",
     "bole": "^3.0.2",
-    "commuter": "^2.0.0",
+    "commuter": "^2.0.1",
     "deter": "^2.0.0",
     "evidence": "^1.0.3",
     "fs-find-root": "^2.0.0",
