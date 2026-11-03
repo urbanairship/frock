@@ -127,7 +127,7 @@ test(`teardown ${__filename}`, t => {
 })
 
 function makeRequest (method, path, ready) {
-  const req = http.request(Object.assign(url.parse(path), {method}), res => {
+  const req = http.request(Object.assign(url.parse(path), {method, agent: false}), res => {
     res.on('data', buf => {
       ready(null, buf.toString(), res)
     })
