@@ -48,8 +48,10 @@ test(`cli integration test`, (t) => {
   const frock = spawn(FROCK_PATH, [frockfilePath])
 
   // rely on the frock logo output to know when things are ready
-  frock.stderr.on('data', () => {
-    const req = http.request({port, host: 'localhost'}, (res) => {
+  // only once: stderr may arrive in several chunks, and extra requests would
+  // be reset when the process is killed
+  frock.stderr.once('data', () => {
+    const req = http.request({port, host: 'localhost', agent: false}, (res) => {
       res.on('data', (data) => {
         t.equal(data.toString(), 'whoop')
       })
